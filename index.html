@@ -1,0 +1,2950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sitemap Intelligence System - Live Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: white;
+            color: #1a1a1a;
+            padding: 40px 30px 30px 30px;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            color: #666;
+        }
+
+        .input-section {
+            padding: 30px;
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #495057;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .input-group small {
+            display: block;
+            margin-top: 5px;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #3858e9;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #2443c7;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #5a6268;
+        }
+
+        .btn-warning {
+            background: #ffa500;
+            color: white;
+        }
+
+        .btn-warning:hover:not(:disabled) {
+            background: #e69500;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #218838;
+        }
+
+        .content-section {
+            padding: 30px;
+        }
+
+        .stage {
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .stage.active {
+            border-color: #3858e9;
+            box-shadow: 0 2px 8px rgba(56, 88, 233, 0.15);
+        }
+
+        .stage.completed {
+            border-color: #28a745;
+        }
+
+        .stage-header {
+            padding: 18px 20px;
+            background: #fafafa;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+
+        .stage-header:hover {
+            background: #f0f0f0;
+        }
+
+        .stage.active .stage-header {
+            background: #3858e9;
+            color: white;
+        }
+
+        .stage.completed .stage-header {
+            background: #f0f9f4;
+            color: #1e7e34;
+        }
+
+        .stage-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .stage-icon {
+            font-size: 1.5em;
+        }
+
+        .stage-status {
+            font-size: 0.9em;
+            padding: 5px 15px;
+            border-radius: 20px;
+            background: white;
+            color: #495057;
+        }
+
+        .stage.active .stage-status {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .stage-body {
+            padding: 20px;
+            display: none;
+        }
+
+        .stage.expanded .stage-body {
+            display: block;
+        }
+
+        .log-entry {
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #dee2e6;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .log-entry.info {
+            border-left-color: #17a2b8;
+            background: #d1ecf1;
+        }
+
+        .log-entry.success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+
+        .log-entry.warning {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+
+        .log-entry.error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+
+        .log-entry.ai {
+            border-left-color: #667eea;
+            background: #e7e9fd;
+        }
+
+        .code-block {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .json-key {
+            color: #e06c75;
+        }
+
+        .json-string {
+            color: #98c379;
+        }
+
+        .json-number {
+            color: #d19a66;
+        }
+
+        .url-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+
+        .url-item {
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-size: 0.9em;
+            word-break: break-all;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .url-item.selected {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            font-weight: 600;
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .badge-ecommerce {
+            background: #e7f5ff;
+            color: #0c5460;
+        }
+
+        .badge-websites {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-maintenance {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-portfolio {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-team {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #3858e9;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .live-console {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            margin-top: 20px;
+        }
+
+        .console-line {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+
+        .console-timestamp {
+            color: #6c757d;
+            margin-right: 10px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .highlight {
+            background: yellow;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-weight: 600;
+        }
+
+        .highlight-ecommerce {
+            background: #ffeb3b;
+        }
+
+        .highlight-wordpress {
+            background: #81c784;
+        }
+
+        .highlight-maintenance {
+            background: #ff9800;
+        }
+
+        .highlight-portfolio {
+            background: #e1bee7;
+        }
+
+        .content-preview {
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 15px 0;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .content-preview h3 {
+            color: #3858e9;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .content-preview .url-header {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-bottom: 15px;
+            word-break: break-all;
+        }
+
+        .content-text {
+            line-height: 1.8;
+            color: #495057;
+            white-space: pre-wrap;
+            font-family: 'Georgia', serif;
+        }
+
+        .keyword-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .keyword-stat {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #3858e9;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .keyword-stat .keyword {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+
+        .keyword-stat .count {
+            font-size: 1.5em;
+            color: #3858e9;
+            font-weight: 700;
+        }
+
+        .category-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .category-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .pages-count {
+            background: #3858e9;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .arrow-icon {
+            transition: transform 0.3s;
+        }
+
+        .stage.expanded .arrow-icon {
+            transform: rotate(90deg);
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #3858e9;
+            transition: width 0.3s;
+        }
+
+        .progress-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #dee2e6;
+            transition: all 0.3s;
+        }
+
+        .progress-step.running {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+        }
+
+        .progress-step.completed {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+
+        .step-icon {
+            font-size: 1.2em;
+        }
+
+        .step-text {
+            font-weight: 600;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Website Analyzer Sidekick</h1>
+        </div>
+
+        <div class="input-section">
+            <div class="input-group">
+                <label for="domain">🌐 Target Domain</label>
+                <div style="display: flex; gap: 10px; align-items: flex-start;">
+                    <div style="flex: 1;">
+                        <input type="text" id="domain" placeholder="example.com">
+                        <small style="display: block; margin-top: 5px;">Enter a domain to analyze (e.g., example.com, agency-website.com)</small>
+                    </div>
+                    <div style="display: flex; gap: 10px; padding-top: 0;">
+                        <button class="btn btn-primary" id="startBtn" onclick="startAnalysis()">
+                            ▶️ Start Analysis
+                        </button>
+                        <button class="btn btn-warning" id="pauseBtn" onclick="togglePause()" style="display: none;">
+                            ⏸️ Pause
+                        </button>
+                        <button class="btn btn-success" id="exportBtn" onclick="exportResults()" style="display: none;">
+                            💾 Export Results
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collapsible credentials section -->
+            <div id="credentialsSection" style="margin-top: 15px;">
+                <div id="credentialsToggle" onclick="toggleCredentials()" style="cursor: pointer; padding: 12px 15px; background: #fafafa; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e0e0e0;">
+                    <div>
+                        <strong>⚙️ API Credentials</strong>
+                        <span id="credentialsStatus" style="margin-left: 10px; font-size: 0.9em; color: #28a745;"></span>
+                    </div>
+                    <span id="credentialsArrow" style="transition: transform 0.3s;">▼</span>
+                </div>
+                
+                <div id="credentialsContent" style="display: none; margin-top: 10px; padding: 15px; background: #f8f9fa; border-radius: 6px; border: 1px solid #dee2e6;">
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <label for="workerUrl">🔧 Cloudflare Worker URL</label>
+                        <input type="text" id="workerUrl" placeholder="https://your-worker.workers.dev" onchange="saveToLocalStorage(); updateCredentialsStatus()">
+                        <small>Your CORS proxy worker URL. Used to fetch sitemaps and content from external domains.</small>
+                    </div>
+
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <label for="apiKey">🔑 OpenAI API Key</label>
+                        <input type="password" id="apiKey" placeholder="sk-..." onchange="saveToLocalStorage(); updateCredentialsStatus()">
+                        <small>💾 Keys are saved in your browser's local storage (not sent to any server)</small>
+                    </div>
+
+                    <button class="btn btn-secondary" id="clearKeysBtn" onclick="clearStoredKeys()" style="width: 100%;">
+                        🗑️ Clear Saved Keys
+                    </button>
+                </div>
+            </div>
+
+            <div class="progress-bar" id="progressBar" style="display: none;">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <!-- Progress Tracker -->
+        <div id="progressTracker" style="display: none; margin: 20px auto; max-width: 1400px; background: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e0e0e0;">
+            <h3 style="margin-bottom: 15px; color: #1a1a1a; font-weight: 600;">📋 Analysis Progress</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                <div id="step1" class="progress-step">
+                    <span class="step-icon">⏳</span>
+                    <span class="step-text">Discover Sitemaps</span>
+                </div>
+                <div id="step2" class="progress-step">
+                    <span class="step-icon">⏳</span>
+                    <span class="step-text">Classify URLs</span>
+                </div>
+                <div id="step3" class="progress-step">
+                    <span class="step-icon">⏳</span>
+                    <span class="step-text">Extract Content</span>
+                </div>
+                <div id="step4" class="progress-step">
+                    <span class="step-icon">⏳</span>
+                    <span class="step-text">Generate Summary</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Summary (HubSpot-ready) -->
+        <div id="summarySection" style="display: none; margin: 20px auto; max-width: 1400px; background: white; border-radius: 8px; padding: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e0e0e0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e0e0e0;">
+                <h3 style="margin: 0; color: #1a1a1a; font-weight: 600;">📊 Analysis Summary</h3>
+                <button onclick="copySummaryToClipboard()" style="padding: 10px 20px; background: #3858e9; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: background 0.2s;">
+                    📋 Copy to Clipboard
+                </button>
+            </div>
+            <div id="summaryContent" style="background: #fafafa; padding: 20px; border-radius: 6px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.8; border: 1px solid #e0e0e0;">
+                <!-- Summary will be populated here -->
+            </div>
+        </div>
+
+        <div class="content-section">
+            <!-- Stage 1: Sitemap Discovery -->
+            <div class="stage" id="stage1">
+                <div class="stage-header" onclick="toggleStage('stage1')">
+                    <div class="stage-title">
+                        <span class="stage-icon">📡</span>
+                        <span>Stage 1: Sitemap Discovery</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span class="stage-status" id="stage1-status">Waiting</span>
+                        <span class="arrow-icon">▶</span>
+                    </div>
+                </div>
+                <div class="stage-body" id="stage1-body">
+                    <p style="margin-bottom: 15px; color: #6c757d;">
+                        <strong>What happens here:</strong> We discover all sitemap files for the domain by checking standard locations
+                        (sitemap.xml, sitemap_index.xml) and parsing robots.txt for sitemap directives.
+                    </p>
+                    <div id="stage1-content"></div>
+                </div>
+            </div>
+
+            <!-- Stage 2: URL Classification -->
+            <div class="stage" id="stage2">
+                <div class="stage-header" onclick="toggleStage('stage2')">
+                    <div class="stage-title">
+                        <span class="stage-icon">🔍</span>
+                        <span>Stage 2: URL Classification</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span class="stage-status" id="stage2-status">Waiting</span>
+                        <span class="arrow-icon">▶</span>
+                    </div>
+                </div>
+                <div class="stage-body" id="stage2-body">
+                    <p style="margin-bottom: 15px; color: #6c757d;">
+                        <strong>What happens here:</strong> We scan each URL path for specific keywords (e.g., "woocommerce", "WordPress", "hosting", "maintenance", "team", "contact") and count how many URLs contain each keyword. This simple keyword matching helps identify which services the agency likely offers based on their website structure.
+                    </p>
+                    <div id="stage2-content"></div>
+                </div>
+            </div>
+
+            <!-- Stage 3: Content Extraction & Analysis -->
+            <div class="stage" id="stage3">
+                <div class="stage-header" onclick="toggleStage('stage3')">
+                    <div class="stage-title">
+                        <span class="stage-icon">📄</span>
+                        <span>Stage 3: Content Extraction & Analysis</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span class="stage-status" id="stage3-status">Waiting</span>
+                        <span class="arrow-icon">▶</span>
+                    </div>
+                </div>
+                <div class="stage-body" id="stage3-body">
+                    <p style="margin-bottom: 15px; color: #6c757d;">
+                        <strong>What happens here:</strong> We fetch up to 2 pages from each category (E-Commerce, Websites, Maintenance, Portfolio, Team)
+                        and display the content with keyword highlighting. You'll see the actual markdown/text content extracted from each page.
+                    </p>
+                    <div id="stage3-content"></div>
+                </div>
+            </div>
+
+            <!-- Stage 4: Content Summary & Statistics -->
+            <div class="stage" id="stage4">
+                <div class="stage-header" onclick="toggleStage('stage4')">
+                    <div class="stage-title">
+                        <span class="stage-icon">📊</span>
+                        <span>Stage 4: Content Summary & Statistics</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span class="stage-status" id="stage4-status">Waiting</span>
+                        <span class="arrow-icon">▶</span>
+                    </div>
+                </div>
+                <div class="stage-body" id="stage4-body">
+                    <p style="margin-bottom: 15px; color: #6c757d;">
+                        <strong>What happens here:</strong> We aggregate all extracted data and show summary statistics,
+                        including total content size, team members found, phone numbers discovered, and category breakdowns.
+                    </p>
+                    <div id="stage4-content"></div>
+                </div>
+            </div>
+
+            <!-- Live Console -->
+            <div style="margin-top: 30px;">
+                <h3 style="margin-bottom: 15px;">📊 Live Console Log</h3>
+                <div class="live-console" id="liveConsole">
+                    <div class="console-line">System ready. Enter a domain and API key to begin analysis...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let state = {
+            isPaused: false,
+            currentStage: 0,
+            domain: '',
+            workerUrl: '',
+            apiKey: '',
+            results: {
+                sitemaps: [],
+                allUrls: [],
+                classifiedUrls: {},
+                aiSelection: null,
+                extractedContent: {}
+            },
+            costs: {
+                totalInputTokens: 0,
+                totalOutputTokens: 0,
+                totalCost: 0,
+                breakdown: []
+            }
+        };
+
+        // Model configuration with fallback
+        const PRICING = {
+            // Try specific version first, then alias, then fallback
+            models: ['gpt-5-nano-2025-08-07', 'gpt-5-nano'],
+            fallbackModel: 'gpt-4o-mini', // Fallback if gpt-5-nano not available
+            inputCostPer1M: 0.05,         // $0.05 per 1M input tokens (gpt-5-nano)
+            outputCostPer1M: 0.40,        // $0.40 per 1M output tokens (gpt-5-nano)
+            fallbackInputCost: 0.15,      // gpt-4o-mini pricing
+            fallbackOutputCost: 0.60      // gpt-4o-mini pricing
+        };
+
+        let currentModelIndex = 0;
+        let usingFallbackModel = false;
+
+        // Helper: Fetch with Cloudflare Worker proxy
+        async function fetchWithProxy(url, retries = 3) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    // Construct the worker URL with the target URL as a parameter
+                    const workerUrl = `${state.workerUrl}?url=${encodeURIComponent(url)}`;
+
+                    const response = await fetch(workerUrl, {
+                        headers: {
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                        }
+                    });
+
+                    if (response.ok) {
+                        return response;
+                    }
+
+                    // If not OK, throw error with status
+                    throw new Error(`HTTP ${response.status}`);
+                } catch (error) {
+                    console.log(`Attempt ${i + 1} failed for ${url}:`, error.message);
+
+                    // If we've exhausted retries, throw error
+                    if (i === retries - 1) {
+                        throw new Error(`Failed to fetch ${url} after ${retries} attempts: ${error.message}`);
+                    }
+
+                    // Wait before retrying
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+        }
+
+        // Cost tracking: Calculate and record API costs
+        function trackCost(operation, inputTokens, outputTokens) {
+            const inputCost = (inputTokens / 1000000) * PRICING.inputCostPer1M;
+            const outputCost = (outputTokens / 1000000) * PRICING.outputCostPer1M;
+            const totalCost = inputCost + outputCost;
+
+            state.costs.totalInputTokens += inputTokens;
+            state.costs.totalOutputTokens += outputTokens;
+            state.costs.totalCost += totalCost;
+
+            state.costs.breakdown.push({
+                operation,
+                inputTokens,
+                outputTokens,
+                cost: totalCost
+            });
+
+            // Log the cost
+            const costLog = `💰 ${operation}: ${inputTokens.toLocaleString()} input + ${outputTokens.toLocaleString()} output tokens = $${totalCost.toFixed(6)}`;
+            addLog(costLog, 'info');
+
+            return totalCost;
+        }
+
+        // Display cost summary
+        function displayCostSummary(stageId) {
+            const costHtml = `
+                <div style="margin: 15px 0; padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 6px;">
+                    <strong>💰 Total API Cost So Far:</strong>
+                    <div style="margin-top: 10px; font-family: monospace;">
+                        <div>Input tokens: ${state.costs.totalInputTokens.toLocaleString()}</div>
+                        <div>Output tokens: ${state.costs.totalOutputTokens.toLocaleString()}</div>
+                        <div style="font-size: 1.1em; font-weight: 600; margin-top: 5px; color: #856404;">
+                            Total cost: $${state.costs.totalCost.toFixed(6)}
+                        </div>
+                    </div>
+                </div>
+            `;
+            addStageLog(stageId, costHtml, 'info');
+        }
+
+        // LocalStorage: Save keys
+        function saveToLocalStorage() {
+            const workerUrl = document.getElementById('workerUrl').value.trim();
+            const apiKey = document.getElementById('apiKey').value.trim();
+
+            if (workerUrl) {
+                localStorage.setItem('sitemapDemo_workerUrl', workerUrl);
+            }
+            if (apiKey) {
+                localStorage.setItem('sitemapDemo_apiKey', apiKey);
+            }
+
+            console.log('Keys saved to localStorage');
+        }
+
+        // LocalStorage: Load keys on page load
+        function loadFromLocalStorage() {
+            const savedWorkerUrl = localStorage.getItem('sitemapDemo_workerUrl');
+            const savedApiKey = localStorage.getItem('sitemapDemo_apiKey');
+
+            if (savedWorkerUrl) {
+                document.getElementById('workerUrl').value = savedWorkerUrl;
+            }
+            if (savedApiKey) {
+                document.getElementById('apiKey').value = savedApiKey;
+            }
+
+            // Update credentials status
+            updateCredentialsStatus();
+
+            // Show/hide credentials section based on whether both are saved
+            const hasBothCredentials = savedWorkerUrl && savedApiKey;
+            
+            if (hasBothCredentials) {
+                // Both saved - keep collapsed
+                document.getElementById('credentialsContent').style.display = 'none';
+                document.getElementById('credentialsArrow').style.transform = 'rotate(0deg)';
+                console.log('Loaded saved keys from localStorage');
+                addLog('✅ Loaded saved credentials from browser storage', 'success');
+            } else {
+                // Missing one or both - show expanded to prompt user
+                document.getElementById('credentialsContent').style.display = 'block';
+                document.getElementById('credentialsArrow').style.transform = 'rotate(180deg)';
+                if (savedWorkerUrl || savedApiKey) {
+                    addLog('⚠️ Partial credentials found - please complete configuration', 'warning');
+                }
+            }
+        }
+
+        // LocalStorage: Clear saved keys
+        function clearStoredKeys() {
+            if (confirm('Clear saved Worker URL and API Key from browser storage?')) {
+                localStorage.removeItem('sitemapDemo_workerUrl');
+                localStorage.removeItem('sitemapDemo_apiKey');
+                document.getElementById('workerUrl').value = '';
+                document.getElementById('apiKey').value = '';
+                addLog('🗑️ Cleared saved credentials from browser storage', 'info');
+                alert('Saved keys have been cleared');
+                
+                // Update UI to show credentials section as expanded
+                updateCredentialsStatus();
+                document.getElementById('credentialsContent').style.display = 'block';
+                document.getElementById('credentialsArrow').style.transform = 'rotate(180deg)';
+            }
+        }
+
+        // Toggle credentials section
+        function toggleCredentials() {
+            const content = document.getElementById('credentialsContent');
+            const arrow = document.getElementById('credentialsArrow');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                arrow.style.transform = 'rotate(180deg)';
+            } else {
+                content.style.display = 'none';
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // Update credentials status indicator
+        function updateCredentialsStatus() {
+            const workerUrl = document.getElementById('workerUrl').value.trim();
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const statusEl = document.getElementById('credentialsStatus');
+            
+            const hasWorker = workerUrl !== '';
+            const hasApiKey = apiKey !== '';
+            
+            if (hasWorker && hasApiKey) {
+                statusEl.innerHTML = '✅ Configured';
+                statusEl.style.color = '#28a745';
+            } else if (hasWorker || hasApiKey) {
+                statusEl.innerHTML = '⚠️ Partially configured';
+                statusEl.style.color = '#ffc107';
+            } else {
+                statusEl.innerHTML = '❌ Not configured';
+                statusEl.style.color = '#dc3545';
+            }
+        }
+
+        // Progress tracker functions
+        function updateStepStatus(stepNumber, status) {
+            const step = document.getElementById(`step${stepNumber}`);
+            const icon = step.querySelector('.step-icon');
+
+            // Remove all status classes
+            step.classList.remove('running', 'completed');
+
+            if (status === 'running') {
+                step.classList.add('running');
+                icon.textContent = '⏳';
+            } else if (status === 'completed') {
+                step.classList.add('completed');
+                icon.textContent = '✅';
+            } else {
+                icon.textContent = '⏳';
+            }
+        }
+
+        // Generate HubSpot-ready summary
+        function generateSummary() {
+            const domain = state.domain;
+            const results = state.results.extractedContent;
+            const classifiedUrls = state.results.classifiedUrls;
+
+            let summaryHtml = `<strong>Website Analysis: ${domain}</strong><br><br>`;
+
+            // Define service categories
+            const serviceCategories = {
+                'Services (Scraped)': {
+                    'Website Design & Development': ['web-design', 'web-development', 'website-development'],
+                    'E-Commerce': ['ecommerce'],
+                    'Maintenance': ['maintenance'],
+                    'Hosting': ['hosting']
+                },
+                'A8c Products (Scraped)': {
+                    'WooCommerce': ['woocommerce'],
+                    'WordPress': ['wordpress']
+                }
+            };
+
+            const keywordDisplayNames = {
+                'woocommerce': 'WooCommerce',
+                'ecommerce': 'eCommerce',
+                'wordpress': 'WordPress',
+                'web-design': 'Web Design',
+                'web-development': 'Web Development',
+                'website-development': 'Website Development',
+                'maintenance': 'Maintenance',
+                'hosting': 'Hosting'
+            };
+
+            // Generate summary for each category
+            for (const [categoryName, services] of Object.entries(serviceCategories)) {
+                summaryHtml += `<strong>${categoryName}:</strong><br>`;
+                let foundInCategory = false;
+
+                for (const [serviceName, keywords] of Object.entries(services)) {
+                    let serviceFound = false;
+                    let totalKeywordCount = 0;
+                    let totalPages = 0;
+                    let analyzedUrls = [];
+
+                    // Check all keywords for this service
+                    for (const keyword of keywords) {
+                        if (results[keyword] && results[keyword].length > 0) {
+                            serviceFound = true;
+                            totalPages += results[keyword].length;
+
+                            // Calculate keyword count across all pages
+                            for (const page of results[keyword]) {
+                                totalKeywordCount += (page.keywordCount || 0);
+                                analyzedUrls.push(page.url);
+                            }
+                        }
+                    }
+
+                    if (serviceFound) {
+                        foundInCategory = true;
+                        // Dot only appears in visual display, not in clipboard copy (innerText strips it)
+                        summaryHtml += `<strong>${serviceName}</strong><span style="color: #28a745; font-size: 1.5em; margin-left: 8px; line-height: 0; vertical-align: middle;">●</span><br>`;
+                        summaryHtml += `&nbsp;&nbsp;- ${totalKeywordCount}x<br>`;
+                        if (analyzedUrls.length > 0) {
+                            analyzedUrls.forEach(url => {
+                                // Remove trailing slash
+                                const cleanUrl = url.endsWith('/') ? url.slice(0, -1) : url;
+                                summaryHtml += `&nbsp;&nbsp;- <a href="${url}" target="_blank" style="color: #0066cc; text-decoration: underline;">${cleanUrl}</a><br>`;
+                            });
+                        }
+                    } else {
+                        summaryHtml += `<strong>${serviceName}</strong><span style="color: #6c757d; font-size: 1.5em; margin-left: 8px; line-height: 0; vertical-align: middle;">●</span><br>`;
+                        summaryHtml += `&nbsp;&nbsp;- Not detected<br>`;
+                    }
+                }
+
+                if (!foundInCategory) {
+                    summaryHtml += `• No services detected in this category<br>`;
+                }
+
+                summaryHtml += `<br>`;
+            }
+
+            // Team Information
+            if (results['Team'] && results['Team'].length > 0) {
+                const teamData = results['Team'][0];
+                if (teamData.teamMembers && teamData.teamMembers.length > 0) {
+                    summaryHtml += `<strong>Team Members Found:</strong> ${teamData.teamMembers.length}<br>`;
+                    teamData.teamMembers.forEach(member => {
+                        summaryHtml += `• ${member.name}`;
+                        if (member.title) summaryHtml += ` - ${member.title}`;
+                        summaryHtml += `<br>`;
+                    });
+                    summaryHtml += `<br>`;
+                }
+            }
+
+            // Contact Information
+            if (results['Contact'] && results['Contact'].length > 0) {
+                const contactData = results['Contact'][0];
+                if (contactData.phoneNumbers && contactData.phoneNumbers.length > 0) {
+                    summaryHtml += `<strong>Phone Numbers:</strong><br>`;
+                    contactData.phoneNumbers.forEach(phone => {
+                        summaryHtml += `• ${phone}<br>`;
+                    });
+                    summaryHtml += `<br>`;
+                }
+                if (contactData.emailAddresses && contactData.emailAddresses.length > 0) {
+                    summaryHtml += `<strong>Email Addresses:</strong><br>`;
+                    contactData.emailAddresses.forEach(email => {
+                        summaryHtml += `• ${email}<br>`;
+                    });
+                    summaryHtml += `<br>`;
+                }
+            }
+
+            document.getElementById('summaryContent').innerHTML = summaryHtml;
+            document.getElementById('summarySection').style.display = 'block';
+        }
+
+        // Copy summary to clipboard
+        function copySummaryToClipboard() {
+            const summaryDiv = document.getElementById('summaryContent');
+            let text = summaryDiv.innerText;
+            
+            // Remove the colored dot bullet characters
+            text = text.replace(/●/g, '').replace(/\s+\n/g, '\n').trim();
+            
+            const copyBtn = document.querySelector('#summarySection button');
+
+            navigator.clipboard.writeText(text).then(() => {
+                // Change button text to "Copied"
+                copyBtn.innerHTML = '✅ Copied';
+                copyBtn.style.background = '#28a745';
+                
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    copyBtn.innerHTML = '📋 Copy to Clipboard';
+                    copyBtn.style.background = '#3858e9';
+                }, 2000);
+            }).catch(err => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                // Change button text to "Copied"
+                copyBtn.innerHTML = '✅ Copied';
+                copyBtn.style.background = '#28a745';
+                
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    copyBtn.innerHTML = '📋 Copy to Clipboard';
+                    copyBtn.style.background = '#3858e9';
+                }, 2000);
+            });
+        }
+
+        // Utility: Add console log
+        function addLog(message, type = 'info') {
+            const console = document.getElementById('liveConsole');
+            const timestamp = new Date().toLocaleTimeString();
+            const line = document.createElement('div');
+            line.className = 'console-line';
+            line.innerHTML = `<span class="console-timestamp">[${timestamp}]</span>${message}`;
+            console.appendChild(line);
+            console.scrollTop = console.scrollHeight;
+        }
+
+        // Utility: Add stage content
+        function addStageLog(stageId, message, type = 'info') {
+            const content = document.getElementById(`${stageId}-content`);
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.innerHTML = message;
+            content.appendChild(entry);
+        }
+
+        // Utility: Update stage status
+        function updateStageStatus(stageId, status, markActive = false, markCompleted = false) {
+            const stage = document.getElementById(stageId);
+            const statusEl = document.getElementById(`${stageId}-status`);
+            statusEl.textContent = status;
+
+            stage.classList.remove('active', 'completed');
+            if (markActive) {
+                stage.classList.add('active', 'expanded');
+            }
+            if (markCompleted) {
+                stage.classList.add('completed');
+                // Auto-collapse when completed
+                stage.classList.remove('expanded');
+            }
+        }
+
+        // Utility: Toggle stage expansion
+        function toggleStage(stageId) {
+            const stage = document.getElementById(stageId);
+            stage.classList.toggle('expanded');
+        }
+
+        // Utility: Sleep function for pausing
+        async function sleep(ms) {
+            while (state.isPaused) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Utility: Update progress bar
+        function updateProgress(percent) {
+            document.getElementById('progressBar').style.display = 'block';
+            document.getElementById('progressFill').style.width = percent + '%';
+        }
+
+        // Toggle pause/resume
+        function togglePause() {
+            state.isPaused = !state.isPaused;
+            const pauseBtn = document.getElementById('pauseBtn');
+            if (state.isPaused) {
+                pauseBtn.innerHTML = '▶️ Resume';
+                pauseBtn.classList.remove('btn-warning');
+                pauseBtn.classList.add('btn-success');
+                addLog('⏸️ Analysis paused', 'warning');
+            } else {
+                pauseBtn.innerHTML = '⏸️ Pause';
+                pauseBtn.classList.remove('btn-success');
+                pauseBtn.classList.add('btn-warning');
+                addLog('▶️ Analysis resumed', 'success');
+            }
+        }
+
+        // Export results
+        function exportResults() {
+            const dataStr = JSON.stringify(state.results, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `sitemap-analysis-${state.domain}-${Date.now()}.json`;
+            link.click();
+            addLog('💾 Results exported to JSON file', 'success');
+        }
+
+        // Main analysis function
+        async function startAnalysis() {
+            // Get inputs
+            let domainInput = document.getElementById('domain').value.trim();
+            state.workerUrl = document.getElementById('workerUrl').value.trim();
+            state.apiKey = document.getElementById('apiKey').value.trim();
+
+            // Normalize domain - strip protocol and www
+            domainInput = domainInput
+                .replace(/^https?:\/\//, '')  // Remove http:// or https://
+                .replace(/^www\./, '')         // Remove www.
+                .replace(/\/$/, '');           // Remove trailing slash
+
+            state.domain = domainInput;
+
+            // Validate inputs
+            if (!state.domain) {
+                alert('Please enter a domain');
+                return;
+            }
+
+            if (!state.workerUrl) {
+                alert('Please enter your Cloudflare Worker URL');
+                return;
+            }
+
+            if (!state.apiKey) {
+                alert('Please enter your OpenAI API key to enable intelligent page selection');
+                return;
+            }
+
+            // Log the normalized domain
+            addLog(`🔧 Normalized domain to: ${state.domain}`, 'info');
+            addLog(`🔌 Using Cloudflare Worker: ${state.workerUrl}`, 'info');
+
+            // Update UI
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('pauseBtn').style.display = 'inline-flex';
+            document.getElementById('progressTracker').style.display = 'block';
+
+            addLog(`🚀 Starting analysis for domain: ${state.domain}`, 'success');
+
+            try {
+                // Stage 1: Sitemap Discovery
+                updateStepStatus(1, 'running');
+                await runStage1();
+                updateStepStatus(1, 'completed');
+                updateProgress(25);
+
+                // Stage 2: URL Classification
+                updateStepStatus(2, 'running');
+                await runStage2();
+                updateStepStatus(2, 'completed');
+                updateProgress(50);
+
+                // Stage 3: AI Page Selection & Content Extraction
+                updateStepStatus(3, 'running');
+                await runStage3();
+                updateStepStatus(3, 'completed');
+                updateProgress(75);
+                
+                // Show export button after Stage 3 completes (we have content to export)
+                document.getElementById('exportBtn').style.display = 'inline-flex';
+
+                // Stage 4: Generate Summary
+                updateStepStatus(4, 'running');
+                await runStage4();
+                updateStepStatus(4, 'completed');
+                updateProgress(100);
+
+                // Generate HubSpot summary
+                generateSummary();
+
+                // Hide pause button and show completion state
+                document.getElementById('pauseBtn').style.display = 'none';
+
+                addLog('✅ Analysis complete! All stages finished successfully.', 'success');
+            } catch (error) {
+                addLog(`❌ Error: ${error.message}`, 'error');
+                alert(`Analysis failed: ${error.message}`);
+                // On error, hide pause button
+                document.getElementById('pauseBtn').style.display = 'none';
+            }
+        }
+
+        // Stage 1: Sitemap Discovery
+        async function runStage1() {
+            updateStageStatus('stage1', 'Running...', true, false);
+            addLog('📡 Stage 1: Discovering sitemaps...', 'info');
+
+            const domain = state.domain;
+            const sitemapLocations = [
+                '/sitemap.xml',
+                '/sitemap_index.xml',
+                '/sitemap.xml.gz',
+                '/sitemaps/sitemap.xml',
+                '/sitemap/sitemap.xml'
+            ];
+
+            addStageLog('stage1', `🔍 Checking standard sitemap locations for: ${domain}`, 'info');
+
+            for (const location of sitemapLocations) {
+                await sleep(500); // Pause for readability
+                const url = `https://${domain}${location}`;
+                addStageLog('stage1', `Trying: ${url}`, 'info');
+
+                try {
+                    const response = await fetchWithProxy(url);
+                    if (response.ok) {
+                        const content = await response.text();
+                        if (content.includes('<urlset') || content.includes('<sitemapindex')) {
+                            state.results.sitemaps.push(url);
+                            addStageLog('stage1', `✅ Found sitemap: ${url}`, 'success');
+                            addLog(`✅ Sitemap found: ${url}`, 'success');
+                        }
+                    }
+                } catch (error) {
+                    addStageLog('stage1', `❌ Not found: ${url}`, 'warning');
+                }
+            }
+
+            // Check robots.txt
+            await sleep(500);
+            addStageLog('stage1', `🤖 Checking robots.txt for sitemap directives...`, 'info');
+            try {
+                const robotsUrl = `https://${domain}/robots.txt`;
+                const response = await fetchWithProxy(robotsUrl);
+                if (response.ok) {
+                    const content = await response.text();
+                    const lines = content.split('\n');
+                    for (const line of lines) {
+                        if (line.toLowerCase().startsWith('sitemap:')) {
+                            const sitemapUrl = line.split(':', 2)[1].trim();
+                            if (!state.results.sitemaps.includes(sitemapUrl)) {
+                                state.results.sitemaps.push(sitemapUrl);
+                                addStageLog('stage1', `✅ Found in robots.txt: ${sitemapUrl}`, 'success');
+                                addLog(`✅ Sitemap in robots.txt: ${sitemapUrl}`, 'success');
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                addStageLog('stage1', `⚠️ Could not fetch robots.txt`, 'warning');
+            }
+
+            // Parse sitemaps and extract URLs (handling sitemap indexes)
+            await sleep(500);
+            addStageLog('stage1', `📄 Parsing ${state.results.sitemaps.length} sitemap(s)...`, 'info');
+
+            const processedSitemaps = new Set();
+            const sitemapsToProcess = [...state.results.sitemaps];
+
+            while (sitemapsToProcess.length > 0) {
+                const sitemapUrl = sitemapsToProcess.shift();
+
+                // Skip if already processed
+                if (processedSitemaps.has(sitemapUrl)) {
+                    continue;
+                }
+                processedSitemaps.add(sitemapUrl);
+
+                await sleep(300);
+                try {
+                    const response = await fetchWithProxy(sitemapUrl);
+                    const xmlText = await response.text();
+
+                    // Check if this is a sitemap index
+                    const isSitemapIndex = xmlText.includes('<sitemapindex') || xmlText.includes('<sitemapIndex');
+
+                    if (isSitemapIndex) {
+                        // Extract child sitemap URLs
+                        const childSitemaps = extractChildSitemaps(xmlText);
+                        addStageLog('stage1', `📑 Sitemap index found: ${sitemapUrl} → ${childSitemaps.length} child sitemaps`, 'info');
+
+                        // Filter to prioritize page sitemaps and exclude posts/blogs
+                        const filteredSitemaps = childSitemaps.filter(url => {
+                            const urlLower = url.toLowerCase();
+
+                            // Skip blog posts, archives, categories, tags, authors
+                            if (urlLower.includes('post-sitemap') ||
+                                urlLower.includes('blog-sitemap') ||
+                                urlLower.includes('category-sitemap') ||
+                                urlLower.includes('tag-sitemap') ||
+                                urlLower.includes('author-sitemap') ||
+                                urlLower.includes('archive-sitemap')) {
+                                addStageLog('stage1', `  ⏭️ Skipping: ${url} (blog/post content)`, 'warning');
+                                return false;
+                            }
+
+                            return true;
+                        });
+
+                        addStageLog('stage1', `✅ Filtered to ${filteredSitemaps.length} page-focused sitemaps (skipped ${childSitemaps.length - filteredSitemaps.length} blog/post sitemaps)`, 'info');
+
+                        // Add filtered sitemaps to the queue
+                        for (const childUrl of filteredSitemaps) {
+                            if (!processedSitemaps.has(childUrl) && !sitemapsToProcess.includes(childUrl)) {
+                                sitemapsToProcess.push(childUrl);
+                                state.results.sitemaps.push(childUrl);
+                                addStageLog('stage1', `  ↳ Found child sitemap: ${childUrl}`, 'info');
+                            }
+                        }
+                    } else {
+                        // Regular sitemap - extract URLs
+                        const urls = extractUrlsFromSitemap(xmlText);
+                        state.results.allUrls.push(...urls);
+                        addStageLog('stage1', `📊 Extracted ${urls.length} URLs from ${sitemapUrl}`, 'success');
+                    }
+                } catch (error) {
+                    addStageLog('stage1', `❌ Failed to parse: ${sitemapUrl} - ${error.message}`, 'error');
+                }
+            }
+
+            // Remove duplicates
+            state.results.allUrls = [...new Set(state.results.allUrls)];
+
+            // Display stats
+            const statsHtml = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">${state.results.sitemaps.length}</div>
+                        <div class="stat-label">Sitemaps Found</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${state.results.allUrls.length}</div>
+                        <div class="stat-label">Total URLs</div>
+                    </div>
+                </div>
+            `;
+            addStageLog('stage1', statsHtml, 'info');
+
+            updateStageStatus('stage1', 'Completed ✓', false, true);
+            addLog(`✅ Stage 1 complete: Found ${state.results.allUrls.length} URLs`, 'success');
+        }
+
+        // Helper: Extract child sitemap URLs from sitemap index
+        function extractChildSitemaps(xmlText) {
+            const sitemaps = [];
+            // Look for <sitemap><loc>...</loc></sitemap> patterns
+            const sitemapMatches = xmlText.matchAll(/<sitemap[^>]*>[\s\S]*?<loc>(.*?)<\/loc>[\s\S]*?<\/sitemap>/gi);
+            for (const match of sitemapMatches) {
+                let url = match[1].trim();
+                // Remove CDATA wrapper if present
+                if (url.startsWith('<![CDATA[') && url.endsWith(']]>')) {
+                    url = url.substring(9, url.length - 3);
+                }
+                sitemaps.push(url);
+            }
+            return sitemaps;
+        }
+
+        // Helper: Extract URLs from sitemap XML
+        function extractUrlsFromSitemap(xmlText) {
+            const urls = [];
+            // Look for <url><loc>...</loc></url> patterns (not <sitemap><loc>)
+            const urlMatches = xmlText.matchAll(/<url[^>]*>[\s\S]*?<loc>(.*?)<\/loc>[\s\S]*?<\/url>/gi);
+            for (const match of urlMatches) {
+                let url = match[1].trim();
+                // Remove CDATA wrapper if present
+                if (url.startsWith('<![CDATA[') && url.endsWith(']]>')) {
+                    url = url.substring(9, url.length - 3);
+                }
+                urls.push(url);
+            }
+            return urls;
+        }
+
+        // Stage 2: URL Classification
+        async function runStage2() {
+            updateStageStatus('stage2', 'Running...', true, false);
+            addLog('🔍 Stage 2: Classifying URLs by keywords...', 'info');
+
+            await sleep(500);
+
+            // Service categories (matching production exactly)
+            const serviceCategories = {
+                'E-Commerce': {
+                    keywords: ['woocommerce', 'ecommerce'],  // Combined e-commerce/ecommerce into one
+                    urls: {},  // Store URLs by keyword like production
+                    color: 'badge-ecommerce'
+                },
+                'Websites': {
+                    keywords: ['wordpress', 'web-design', 'web-development', 'website-development'],
+                    urls: {},  // Store URLs by keyword like production
+                    color: 'badge-websites'
+                },
+                'Maintenance': {
+                    keywords: ['maintenance', 'hosting'],
+                    urls: {},  // Store URLs by keyword like production
+                    color: 'badge-maintenance'
+                }
+            };
+
+            // Initialize keyword storage for each category
+            for (const [category, data] of Object.entries(serviceCategories)) {
+                for (const keyword of data.keywords) {
+                    data.urls[keyword] = [];
+                }
+            }
+
+            // Team/About keywords (matching production)
+            const teamKeywords = [
+                'about', 'team', 'leadership', 'staff', 'people', '/company',
+                'who-we-are', 'meet-the-team', 'our-team', 'founders', 'management',
+                'our-company', 'the-company'
+            ];
+
+            // Contact keywords (matching production)
+            const contactKeywords = [
+                'contact', 'get-in-touch', 'support', 'reach-us',
+                'contact-us', 'get-help', 'customer-service', '/help'
+            ];
+
+            state.results.classifiedUrls = {
+                services: {},
+                team: [],
+                contact: [],
+                other: []
+            };
+
+            addStageLog('stage2', `🔍 Analyzing ${state.results.allUrls.length} URLs...`, 'info');
+
+            // Classify each URL
+            for (const url of state.results.allUrls) {
+                const urlLower = url.toLowerCase();
+                let classified = false;
+
+                // Check service categories and store by keyword
+                for (const [category, data] of Object.entries(serviceCategories)) {
+                    for (const keyword of data.keywords) {
+                        // Handle ecommerce spelling variations
+                        const matches = keyword === 'ecommerce'
+                            ? (urlLower.includes('ecommerce') || urlLower.includes('e-commerce'))
+                            : urlLower.includes(keyword);
+
+                        if (matches) {
+                            // Store URLs by keyword (like production)
+                            data.urls[keyword].push(url);
+
+                            // Also store in services by category for AI processing
+                            if (!state.results.classifiedUrls.services[category]) {
+                                state.results.classifiedUrls.services[category] = [];
+                            }
+                            state.results.classifiedUrls.services[category].push(url);
+                            classified = true;
+                            break;
+                        }
+                    }
+                    if (classified) break;
+                }
+
+                // Check team keywords
+                if (!classified && teamKeywords.some(kw => urlLower.includes(kw))) {
+                    state.results.classifiedUrls.team.push(url);
+                    classified = true;
+                }
+
+                // Check contact keywords
+                if (!classified && contactKeywords.some(kw => urlLower.includes(kw))) {
+                    state.results.classifiedUrls.contact.push(url);
+                    classified = true;
+                }
+
+                // Other
+                if (!classified) {
+                    state.results.classifiedUrls.other.push(url);
+                }
+            }
+
+            await sleep(500);
+
+            // Display stats with keyword-level detail (like production)
+            const teamCount = state.results.classifiedUrls.team.length;
+            const contactCount = state.results.classifiedUrls.contact.length;
+
+            addStageLog('stage2', '<strong>📊 URL Classification Results (by keyword):</strong>', 'info');
+
+            // Build keyword breakdown display - show ALL keywords even if 0
+            let keywordStatsHtml = '<div class="stats-grid">';
+
+            // Show each keyword individually (not grouped by category)
+            const allKeywords = {
+                'woocommerce': 'WooCommerce',
+                'ecommerce': 'E-commerce',
+                'wordpress': 'WordPress',
+                'web-design': 'Web Design',
+                'web-development': 'Web Development',
+                'website-development': 'Website Development',
+                'maintenance': 'Maintenance',
+                'hosting': 'Hosting'
+            };
+
+            for (const [keyword, displayName] of Object.entries(allKeywords)) {
+                let count = 0;
+
+                // Find the count for this keyword
+                for (const [category, data] of Object.entries(serviceCategories)) {
+                    if (data.urls[keyword]) {
+                        count = data.urls[keyword].length;
+                        break;
+                    }
+                }
+
+                const colorClass = count > 0 ? '' : 'style="opacity: 0.5;"';
+                keywordStatsHtml += `
+                    <div class="stat-card" ${colorClass}>
+                        <div class="stat-number">${count}</div>
+                        <div class="stat-label">${displayName}</div>
+                    </div>`;
+            }
+
+            // Team URLs
+            const teamColorClass = teamCount > 0 ? '' : 'style="opacity: 0.5;"';
+            keywordStatsHtml += `
+                <div class="stat-card" ${teamColorClass}>
+                    <div class="stat-number">${teamCount}</div>
+                    <div class="stat-label">Team</div>
+                </div>`;
+
+            // Contact URLs
+            const contactColorClass = contactCount > 0 ? '' : 'style="opacity: 0.5;"';
+            keywordStatsHtml += `
+                <div class="stat-card" ${contactColorClass}>
+                    <div class="stat-number">${contactCount}</div>
+                    <div class="stat-label">Contact</div>
+                </div>`;
+
+            keywordStatsHtml += '</div>';
+            addStageLog('stage2', keywordStatsHtml, 'info');
+
+            // Show sample service URLs by keyword
+            await sleep(300);
+            for (const [category, data] of Object.entries(serviceCategories)) {
+                const categoryUrls = state.results.classifiedUrls.services[category] || [];
+                if (categoryUrls.length > 0) {
+                    addStageLog('stage2', `<strong>📋 ${category} URLs (candidates for AI analysis):</strong>`, 'info');
+
+                    // Show breakdown by keyword
+                    for (const keyword of data.keywords) {
+                        const keywordUrls = data.urls[keyword];
+                        if (keywordUrls.length > 0) {
+                            const sampleUrls = keywordUrls.slice(0, 3);
+                            const urlListHtml = `<div style="margin-left: 15px; margin-bottom: 8px;">
+                                <strong>${keyword}</strong> (${keywordUrls.length} URLs):
+                                <div class="url-list">` +
+                                sampleUrls.map(url => `<div class="url-item">${url}</div>`).join('') +
+                                (keywordUrls.length > 3 ? `<div style="font-size: 11px; color: #666;">... and ${keywordUrls.length - 3} more</div>` : '') +
+                                '</div></div>';
+                            addStageLog('stage2', urlListHtml, 'info');
+                        }
+                    }
+                }
+            }
+
+            updateStageStatus('stage2', 'Completed ✓', false, true);
+            addLog(`✅ Stage 2 complete: Classified ${state.results.allUrls.length} URLs into categories`, 'success');
+        }
+
+        // Helper: Use AI to select best URLs for ALL keywords in a single call
+        async function selectBestUrlsForAllKeywords(serviceCategories, isRetry = false) {
+            // Only log on first attempt, not on retries
+            if (!isRetry) {
+                addStageLog('stage3', `🤖 Using AI to select best 2 URLs for each keyword (single optimized call)...`, 'ai');
+            }
+
+            // Build the prompt with all keywords and their URLs
+            let urlsByKeyword = {};
+            let promptText = 'Analyze these URLs grouped by keyword and select the best 2 URLs for each keyword that will provide the most comprehensive information about that specific service.\n\n';
+
+            for (const [category, data] of Object.entries(serviceCategories)) {
+                for (const keyword of data.keywords) {
+                    const keywordUrls = data.urls[keyword] || [];
+                    if (keywordUrls.length > 0) {
+                        urlsByKeyword[keyword] = keywordUrls;
+                        promptText += `**${keyword.toUpperCase()}** (${keywordUrls.length} URLs):\n`;
+                        keywordUrls.forEach((url, idx) => {
+                            promptText += `${idx + 1}. ${url}\n`;
+                        });
+                        promptText += '\n';
+                    }
+                }
+            }
+
+            promptText += `
+SELECTION CRITERIA:
+1. **Relevance** (40 pts): URL path directly relates to the keyword
+2. **Comprehensiveness** (30 pts): Main overview pages over narrow sub-services or location-specific pages
+3. **URL Hierarchy** (20 pts): Prefer 2-3 levels deep (e.g., /services/wordpress/ over /services/wordpress/chicago/)
+4. **Content Indicators** (10 pts): Descriptive paths suggesting detailed content
+
+AVOID:
+- Blog posts (/blog/, /news/, date patterns like /2024/)
+- Location-specific pages (/chicago/, /new-york/)
+- Single case studies or narrow topics
+- Archive/category pages
+
+Respond with ONLY valid JSON in this exact format:
+{
+  "woocommerce": ["url1", "url2"],
+  "ecommerce": ["url1", "url2"],
+  "wordpress": ["url1", "url2"],
+  "web-design": ["url1", "url2"],
+  "web-development": ["url1", "url2"],
+  "website-development": ["url1", "url2"],
+  "maintenance": ["url1", "url2"],
+  "hosting": ["url1", "url2"]
+}
+
+If a keyword has fewer than 2 URLs, include all available. If a keyword has no URLs, use an empty array [].`;
+
+            try {
+                const systemPrompt = 'You are an expert web analyst specializing in competitive research. Respond with valid JSON only.';
+
+                // Display the AI prompt being sent (only on first attempt, not retries)
+                if (!isRetry) {
+                    const promptDisplayHtml = `
+                        <div style="margin: 15px 0;">
+                            <strong>🤖 AI Prompt Sent (All Keywords):</strong>
+                            <div class="code-block" style="margin-top: 5px; font-size: 0.85em; white-space: pre-wrap;">${systemPrompt}
+
+User: ${promptText}</div>
+                        </div>
+                    `;
+                    addStageLog('stage3', promptDisplayHtml, 'ai');
+                }
+
+                let modelToUse = usingFallbackModel ? PRICING.fallbackModel : PRICING.models[currentModelIndex];
+
+                // Build request body - GPT-5 Nano doesn't support temperature parameter
+                const requestBody = {
+                    model: modelToUse,
+                    messages: [
+                        { role: 'system', content: systemPrompt },
+                        { role: 'user', content: promptText }
+                    ],
+                    response_format: { type: "json_object" }
+                };
+
+                // Only add temperature for non-GPT-5 models
+                if (!modelToUse.includes('gpt-5')) {
+                    requestBody.temperature = 0.3;
+                }
+
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${state.apiKey}`
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                // Handle model fallback (401 = permissions, 400 = invalid request)
+                if ((response.status === 400 || response.status === 401) && !usingFallbackModel) {
+                    // Log the actual error to see what's wrong
+                    const errorData = await response.json();
+                    const errorMsg = errorData.error?.message || JSON.stringify(errorData);
+
+                    if (response.status === 401) {
+                        addLog(`⚠️ Permission denied for ${modelToUse}: ${errorMsg}`, 'warning');
+                        addLog(`⚠️ Your API key lacks the 'model.request' scope for GPT-5. Falling back to ${PRICING.fallbackModel}`, 'warning');
+                        // Skip trying other gpt-5 variants, go straight to fallback
+                        usingFallbackModel = true;
+                    } else {
+                        addLog(`⚠️ Error with ${modelToUse}: ${errorMsg}`, 'warning');
+
+                        if (currentModelIndex < PRICING.models.length - 1) {
+                            currentModelIndex++;
+                            addLog(`⚠️ Trying ${PRICING.models[currentModelIndex]}`, 'warning');
+                            return selectBestUrlsForAllKeywords(serviceCategories, true); // Pass isRetry flag
+                        }
+
+                        addLog(`⚠️ GPT-5-nano not available, falling back to ${PRICING.fallbackModel}`, 'warning');
+                        usingFallbackModel = true;
+                    }
+
+                    // Build fallback request body
+                    const fallbackRequestBody = {
+                        model: PRICING.fallbackModel,
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user', content: promptText }
+                        ],
+                        response_format: { type: "json_object" }
+                    };
+
+                    // gpt-4o-mini supports temperature
+                    if (!PRICING.fallbackModel.includes('gpt-5')) {
+                        fallbackRequestBody.temperature = 0.3;
+                    }
+
+                    const fallbackResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${state.apiKey}`
+                        },
+                        body: JSON.stringify(fallbackRequestBody)
+                    });
+
+                    if (!fallbackResponse.ok) {
+                        const errorData = await fallbackResponse.text();
+                        throw new Error(`Fallback API error ${fallbackResponse.status}: ${errorData}`);
+                    }
+
+                    const data = await fallbackResponse.json();
+                    const aiResponseText = data.choices[0].message.content;
+
+                    const usage = data.usage;
+                    const inputCost = (usage.prompt_tokens / 1000000) * PRICING.fallbackInputCost;
+                    const outputCost = (usage.completion_tokens / 1000000) * PRICING.fallbackOutputCost;
+                    const totalCost = inputCost + outputCost;
+
+                    state.costs.totalInputTokens += usage.prompt_tokens;
+                    state.costs.totalOutputTokens += usage.completion_tokens;
+                    state.costs.totalCost += totalCost;
+                    state.costs.breakdown.push({
+                        operation: `AI URL Selection - All Keywords (${PRICING.fallbackModel})`,
+                        inputTokens: usage.prompt_tokens,
+                        outputTokens: usage.completion_tokens,
+                        cost: totalCost
+                    });
+                    addLog(`💰 All Keywords: ${usage.prompt_tokens.toLocaleString()} input + ${usage.completion_tokens.toLocaleString()} output tokens = $${totalCost.toFixed(6)} (${PRICING.fallbackModel})`, 'info');
+
+                    const result = JSON.parse(aiResponseText);
+
+                    const responseHtml = `
+                        <div style="margin: 15px 0;">
+                            <strong>🎯 AI Response (All Keywords)</strong>
+                            <span style="background: #ffc107; color: #000; padding: 3px 8px; border-radius: 4px; font-size: 0.85em; margin-left: 10px;">
+                                ${PRICING.fallbackModel} (fallback)
+                            </span>
+                            <div class="code-block" style="margin-top: 5px; font-size: 0.85em;">${JSON.stringify(result, null, 2)}</div>
+                        </div>
+                    `;
+                    addStageLog('stage3', responseHtml, 'ai');
+
+                    return result;
+                }
+
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    throw new Error(`API error ${response.status}: ${errorData}`);
+                }
+
+                const data = await response.json();
+                const aiResponseText = data.choices[0].message.content;
+
+                const usage = data.usage;
+                trackCost(`AI URL Selection - All Keywords (${modelToUse})`, usage.prompt_tokens, usage.completion_tokens);
+
+                const result = JSON.parse(aiResponseText);
+
+                const responseHtml = `
+                    <div style="margin: 15px 0;">
+                        <strong>🎯 AI Response (All Keywords)</strong>
+                        <span style="background: #667eea; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.85em; margin-left: 10px;">
+                            ${modelToUse}
+                        </span>
+                        <div class="code-block" style="margin-top: 5px; font-size: 0.85em;">${JSON.stringify(result, null, 2)}</div>
+                    </div>
+                `;
+                addStageLog('stage3', responseHtml, 'ai');
+
+                let totalSelected = 0;
+                for (const keyword in result) {
+                    totalSelected += result[keyword].length;
+                }
+                addLog(`🤖 AI selected ${totalSelected} total URLs across all keywords using ${modelToUse}`, 'success');
+
+                return result;
+            } catch (error) {
+                addStageLog('stage3', `⚠️ AI selection failed: ${error.message}. Using first 2 URLs per keyword.`, 'warning');
+                // Return fallback: first 2 URLs for each keyword
+                let fallback = {};
+                for (const keyword in urlsByKeyword) {
+                    fallback[keyword] = urlsByKeyword[keyword].slice(0, 2);
+                }
+                return fallback;
+            }
+        }
+
+        // Helper: Use AI to select best URLs from a category (OLD - kept for Team/Contact)
+        async function selectBestUrlsWithAI(category, urls, maxUrls = 2) {
+            if (urls.length === 0) return [];
+            if (urls.length <= maxUrls) return urls;
+
+            addStageLog('stage3', `🤖 Using AI to select best ${maxUrls} URLs from ${urls.length} ${category} pages...`, 'ai');
+
+            const systemPrompt = 'You are an expert web analyst specializing in competitive research and content analysis. Respond with valid JSON only.';
+
+            // Category-specific guidance
+            const categoryGuidance = {
+                'E-Commerce': {
+                    keyword: 'WooCommerce/ecommerce development services',
+                    purpose: 'Understand service offerings, pricing, and technical capabilities',
+                    goodExamples: ['/services/ecommerce/', '/woocommerce-development/', '/ecommerce-solutions/'],
+                    badExamples: ['/blog/ecommerce-tips/', '/ecommerce/chicago/', '/case-studies/ecommerce/']
+                },
+                'Websites': {
+                    keyword: 'WordPress/website development services',
+                    purpose: 'Understand web design and development service offerings',
+                    goodExamples: ['/services/web-development/', '/WordPress-services/', '/website-design/'],
+                    badExamples: ['/blog/WordPress-tips/', '/portfolio/website/', '/web-design/pricing/']
+                },
+                'Maintenance': {
+                    keyword: 'website maintenance and hosting services',
+                    purpose: 'Understand ongoing support and hosting offerings',
+                    goodExamples: ['/services/maintenance/', '/website-support/', '/hosting-plans/'],
+                    badExamples: ['/blog/maintenance-tips/', '/support/faq/', '/maintenance/case-study/']
+                },
+                'Team': {
+                    keyword: 'company team and leadership',
+                    purpose: 'Extract team member information and company details',
+                    goodExamples: ['/about/', '/team/', '/our-team/', '/leadership/'],
+                    badExamples: ['/blog/team/', '/team/careers/', '/contact/team/']
+                },
+                'Contact': {
+                    keyword: 'contact information',
+                    purpose: 'Extract phone numbers, email addresses, and contact forms',
+                    goodExamples: ['/contact/', '/get-in-touch/', '/contact-us/'],
+                    badExamples: ['/blog/contact/', '/contact/careers/', '/support/']
+                }
+            };
+
+            const guide = categoryGuidance[category] || {
+                keyword: category.toLowerCase(),
+                purpose: 'Extract relevant information',
+                goodExamples: [],
+                badExamples: []
+            };
+
+            const userPrompt = `Analyze these URLs and select the ${maxUrls} BEST pages for extracting comprehensive information about ${guide.keyword}.
+
+TARGET KEYWORD: "${guide.keyword}"
+PURPOSE: ${guide.purpose}
+
+URLs to analyze (${Math.min(urls.length, 15)} provided):
+${JSON.stringify(urls.slice(0, 15), null, 2)}
+
+${guide.goodExamples.length > 0 ? `GOOD URL PATTERNS (comprehensive main pages):
+${guide.goodExamples.map(ex => `- ${ex} (main overview with detailed information)`).join('\n')}
+
+BAD URL PATTERNS (avoid these):
+${guide.badExamples.map(ex => `- ${ex} (too narrow or blog content)`).join('\n')}
+` : ''}
+SELECTION CRITERIA (in priority order):
+1. **Relevance** (40 pts): URL path directly relates to target keyword
+2. **Comprehensiveness** (30 pts): Main overview pages over narrow sub-services
+3. **URL Hierarchy** (20 pts): Prefer 2-3 levels deep (e.g., /services/ecommerce/ over /services/ecommerce/shopify/consultation/)
+4. **Content Indicators** (10 pts): Descriptive paths suggesting detailed content
+
+ELIMINATION RULES:
+- ❌ Blog posts (/blog/, /news/, /insights/, date patterns like /2024/)
+- ❌ Location-specific pages (/chicago/, /new-york/, /uk/)
+- ❌ Archive/category pages (/category/, /archive/, /tag/)
+- ❌ Single narrow topics (/ecommerce/shopify/migration/ - too specific)
+- ❌ Author pages (/author/, /team/john-doe/)
+
+Respond with ONLY valid JSON:
+{
+  "selected_urls": ["url1", "url2"],
+  "reasoning": "For each URL: (1) Why it's relevant to '${guide.keyword}', (2) What content you expect to find, (3) Why it's better than alternatives. Include relevance scores if helpful."
+}`;
+
+            // Show the full prompt
+            const promptHtml = `
+                <div style="margin: 15px 0;">
+                    <strong>🤖 AI Prompt Sent (${category}):</strong>
+                    <div class="code-block" style="margin-top: 5px; font-size: 0.85em;">
+<span style="color: #e06c75;">System:</span> ${systemPrompt}
+
+<span style="color: #e06c75;">User:</span> ${userPrompt}
+                    </div>
+                </div>
+            `;
+            addStageLog('stage3', promptHtml, 'ai');
+
+            try {
+                let modelToUse = usingFallbackModel ? PRICING.fallbackModel : PRICING.models[currentModelIndex];
+
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${state.apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: modelToUse,
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user', content: userPrompt }
+                        ]
+                        // Note: temperature omitted for GPT-5 compatibility (only supports default=1)
+                    })
+                });
+
+                // If model fails with 400 or 401, try fallback
+                if ((response.status === 400 || response.status === 401) && !usingFallbackModel) {
+                    // Try next gpt-5-nano variant
+                    if (response.status === 400 && currentModelIndex < PRICING.models.length - 1) {
+                        currentModelIndex++;
+                        addLog(`⚠️ ${modelToUse} not available, trying ${PRICING.models[currentModelIndex]}`, 'warning');
+                        return selectBestUrlsWithAI(category, urls, maxUrls); // Retry with next model
+                    }
+
+                    // All gpt-5-nano variants failed or permission denied, fall back to gpt-4o-mini
+                    addLog(`⚠️ GPT-5-nano not available, falling back to ${PRICING.fallbackModel}`, 'warning');
+                    usingFallbackModel = true;
+
+                    const fallbackResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${state.apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: PRICING.fallbackModel,
+                            messages: [
+                                { role: 'system', content: systemPrompt },
+                                { role: 'user', content: userPrompt }
+                            ],
+                            temperature: 0.3  // gpt-4o-mini supports temperature
+                        })
+                    });
+
+                    if (!fallbackResponse.ok) {
+                        const errorData = await fallbackResponse.text();
+                        throw new Error(`Fallback API error ${fallbackResponse.status}: ${errorData}`);
+                    }
+
+                    const data = await fallbackResponse.json();
+                    const aiResponseText = data.choices[0].message.content;
+
+                    // Track cost from usage data (using fallback pricing)
+                    const usage = data.usage;
+                    const inputCost = (usage.prompt_tokens / 1000000) * PRICING.fallbackInputCost;
+                    const outputCost = (usage.completion_tokens / 1000000) * PRICING.fallbackOutputCost;
+                    const totalCost = inputCost + outputCost;
+
+                    state.costs.totalInputTokens += usage.prompt_tokens;
+                    state.costs.totalOutputTokens += usage.completion_tokens;
+                    state.costs.totalCost += totalCost;
+                    state.costs.breakdown.push({
+                        operation: `AI URL Selection - ${category} (${PRICING.fallbackModel})`,
+                        inputTokens: usage.prompt_tokens,
+                        outputTokens: usage.completion_tokens,
+                        cost: totalCost
+                    });
+                    addLog(`💰 ${category}: ${usage.prompt_tokens.toLocaleString()} input + ${usage.completion_tokens.toLocaleString()} output tokens = $${totalCost.toFixed(6)} (${PRICING.fallbackModel})`, 'info');
+
+                    const result = JSON.parse(aiResponseText);
+
+                    // Show the full AI response
+                    const responseHtml = `
+                        <div style="margin: 15px 0;">
+                            <strong>🎯 AI Response (${category}):</strong>
+                            <div class="code-block" style="margin-top: 5px; font-size: 0.85em;">${JSON.stringify(result, null, 2)}</div>
+                        </div>
+                    `;
+                    addStageLog('stage3', responseHtml, 'ai');
+                    addLog(`🤖 AI selected ${result.selected_urls.length} ${category} pages: ${result.reasoning}`, 'success');
+                    return result.selected_urls;
+                }
+
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    throw new Error(`API error ${response.status}: ${errorData}`);
+                }
+
+                const data = await response.json();
+                const aiResponseText = data.choices[0].message.content;
+
+                // Track cost from usage data
+                const usage = data.usage;
+                trackCost(`AI URL Selection - ${category}`, usage.prompt_tokens, usage.completion_tokens);
+
+                const result = JSON.parse(aiResponseText);
+
+                // Show the full AI response
+                const responseHtml = `
+                    <div style="margin: 15px 0;">
+                        <strong>🎯 AI Response (${category}):</strong>
+                        <div class="code-block" style="margin-top: 5px; font-size: 0.85em;">${JSON.stringify(result, null, 2)}</div>
+                    </div>
+                `;
+                addStageLog('stage3', responseHtml, 'ai');
+
+                addLog(`🤖 AI selected ${result.selected_urls.length} ${category} pages: ${result.reasoning}`, 'success');
+
+                return result.selected_urls;
+            } catch (error) {
+                addStageLog('stage3', `⚠️ AI selection failed: ${error.message}. Using first ${maxUrls} URLs.`, 'warning');
+                return urls.slice(0, maxUrls);
+            }
+        }
+
+        // Helper: Extract team members from content using AI
+        async function extractTeamMembers(content, url) {
+            const prompt = `Analyze this team/about page content and extract information about team members.
+
+Content (first 3000 chars):
+${content.substring(0, 3000)}
+
+Extract team members with their names, titles, and any bio/description. Format as JSON:
+{
+  "team_members": [
+    {
+      "name": "Full Name",
+      "title": "Job Title",
+      "bio": "Brief bio or description if available"
+    }
+  ]
+}
+
+If no clear team members are found, return empty array.`;
+
+            try {
+                let modelToUse = usingFallbackModel ? PRICING.fallbackModel : PRICING.models[currentModelIndex];
+
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${state.apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: modelToUse,
+                        messages: [
+                            { role: 'system', content: 'You are an expert at extracting structured data from text. Respond with valid JSON only.' },
+                            { role: 'user', content: prompt }
+                        ]
+                        // Note: temperature omitted for GPT-5 compatibility
+                    })
+                });
+
+                // If primary model fails with 400 or 401, try fallback
+                if ((response.status === 400 || response.status === 401) && !usingFallbackModel) {
+                    usingFallbackModel = true;
+
+                    const fallbackResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${state.apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: PRICING.fallbackModel,
+                            messages: [
+                                { role: 'system', content: 'You are an expert at extracting structured data from text. Respond with valid JSON only.' },
+                                { role: 'user', content: prompt }
+                            ],
+                            temperature: 0.2  // gpt-4o-mini supports temperature
+                        })
+                    });
+
+                    if (!fallbackResponse.ok) throw new Error(`Fallback API error: ${fallbackResponse.status}`);
+
+                    const data = await fallbackResponse.json();
+                    const usage = data.usage;
+
+                    // Track cost with fallback pricing
+                    const inputCost = (usage.prompt_tokens / 1000000) * PRICING.fallbackInputCost;
+                    const outputCost = (usage.completion_tokens / 1000000) * PRICING.fallbackOutputCost;
+                    const totalCost = inputCost + outputCost;
+
+                    state.costs.totalInputTokens += usage.prompt_tokens;
+                    state.costs.totalOutputTokens += usage.completion_tokens;
+                    state.costs.totalCost += totalCost;
+                    state.costs.breakdown.push({
+                        operation: `Team Member Extraction - ${url} (${PRICING.fallbackModel})`,
+                        inputTokens: usage.prompt_tokens,
+                        outputTokens: usage.completion_tokens,
+                        cost: totalCost
+                    });
+                    addLog(`💰 Team extraction: ${usage.prompt_tokens.toLocaleString()} input + ${usage.completion_tokens.toLocaleString()} output tokens = $${totalCost.toFixed(6)} (${PRICING.fallbackModel})`, 'info');
+
+                    const result = JSON.parse(data.choices[0].message.content);
+                    return result.team_members || [];
+                }
+
+                if (!response.ok) throw new Error(`API error: ${response.status}`);
+
+                const data = await response.json();
+
+                // Track cost from usage data
+                const usage = data.usage;
+                trackCost(`Team Member Extraction - ${url}`, usage.prompt_tokens, usage.completion_tokens);
+
+                const result = JSON.parse(data.choices[0].message.content);
+
+                return result.team_members || [];
+            } catch (error) {
+                addLog(`⚠️ Team member extraction failed: ${error.message}`, 'warning');
+                return [];
+            }
+        }
+
+        // Helper: Extract phone numbers from contact page
+        function extractPhoneNumbers(content) {
+            // Common phone number patterns
+            const patterns = [
+                /(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g,  // US format
+                /(\+?\d{1,3}[-.\s]?)?\d{2,4}[-.\s]?\d{2,4}[-.\s]?\d{2,4}/g,   // International
+            ];
+
+            const phones = new Set();
+
+            for (const pattern of patterns) {
+                const matches = content.match(pattern);
+                if (matches) {
+                    matches.forEach(phone => {
+                        // Clean up the number
+                        const cleaned = phone.replace(/[^\d+]/g, '');
+                        if (cleaned.length >= 10) {  // Valid phone number length
+                            phones.add(phone.trim());
+                        }
+                    });
+                }
+            }
+
+            return Array.from(phones);
+        }
+
+        // Helper: Extract email addresses from contact page
+        function extractEmailAddresses(content) {
+            // Email pattern - more comprehensive to catch most valid emails
+            const emailPattern = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
+            
+            const emails = new Set();
+            const matches = content.match(emailPattern);
+            
+            if (matches) {
+                matches.forEach(email => {
+                    // Filter out common false positives
+                    const lowerEmail = email.toLowerCase();
+                    
+                    // Skip common placeholder/example emails
+                    if (lowerEmail.includes('example.com') ||
+                        lowerEmail.includes('test.com') ||
+                        lowerEmail.includes('domain.com') ||
+                        lowerEmail.includes('yoursite.com') ||
+                        lowerEmail.includes('yourdomain.com')) {
+                        return;
+                    }
+                    
+                    // Skip image file extensions that might be caught
+                    if (lowerEmail.endsWith('.png') ||
+                        lowerEmail.endsWith('.jpg') ||
+                        lowerEmail.endsWith('.gif') ||
+                        lowerEmail.endsWith('.svg')) {
+                        return;
+                    }
+                    
+                    emails.add(email.trim());
+                });
+            }
+            
+            return Array.from(emails);
+        }
+
+        // Stage 3: Content Extraction & Analysis
+        async function runStage3() {
+            updateStageStatus('stage3', 'Running...', true, false);
+            addLog('📄 Stage 3: Using AI to select and extract content from categorized pages...', 'info');
+
+            await sleep(500);
+
+            state.results.extractedContent = {};
+            let totalPagesExtracted = 0;
+
+            // Get serviceCategories from Stage 2 (need to reconstruct it)
+            const serviceCategories = {
+                'E-Commerce': {
+                    keywords: ['woocommerce', 'ecommerce'],
+                    urls: {}
+                },
+                'Websites': {
+                    keywords: ['wordpress', 'web-design', 'web-development', 'website-development'],
+                    urls: {}
+                },
+                'Maintenance': {
+                    keywords: ['maintenance', 'hosting'],
+                    urls: {}
+                }
+            };
+
+            // Reconstruct keyword URL mapping from Stage 2
+            for (const url of state.results.allUrls) {
+                const urlLower = url.toLowerCase();
+
+                for (const [category, data] of Object.entries(serviceCategories)) {
+                    for (const keyword of data.keywords) {
+                        const matches = keyword === 'ecommerce'
+                            ? (urlLower.includes('ecommerce') || urlLower.includes('e-commerce'))
+                            : urlLower.includes(keyword);
+
+                        if (matches) {
+                            if (!data.urls[keyword]) {
+                                data.urls[keyword] = [];
+                            }
+                            data.urls[keyword].push(url);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Make single AI call to select best URLs for all keywords
+            await sleep(500);
+            const selectedUrlsByKeyword = await selectBestUrlsForAllKeywords(serviceCategories);
+
+            // Process service keywords - fetch and extract content
+            for (const keyword in selectedUrlsByKeyword) {
+                const urlsToFetch = selectedUrlsByKeyword[keyword] || [];
+
+                if (urlsToFetch.length === 0) {
+                    continue;
+                }
+
+                if (!state.results.extractedContent[keyword]) {
+                    state.results.extractedContent[keyword] = [];
+                }
+
+                addStageLog('stage3', `<div class="category-section">
+                    <div class="category-header">
+                        <span class="category-title">📂 ${keyword}</span>
+                        <span class="pages-count">${urlsToFetch.length} page(s)</span>
+                    </div>
+                </div>`, 'info');
+
+                for (let i = 0; i < urlsToFetch.length; i++) {
+                    const url = urlsToFetch[i];
+                    await sleep(800);
+
+                    addStageLog('stage3', `🔄 Fetching: ${url}`, 'info');
+                    addLog(`📥 Downloading page ${i + 1}/${urlsToFetch.length} from ${keyword}: ${url}`, 'info');
+
+                    try {
+                        const response = await fetchWithProxy(url);
+                        let content = await response.text();
+
+                        // Simple HTML to text conversion
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = content;
+
+                        // Remove script and style tags
+                        const scripts = tempDiv.querySelectorAll('script, style, nav, footer, header');
+                        scripts.forEach(script => script.remove());
+
+                        // Get text content
+                        let textContent = tempDiv.textContent || tempDiv.innerText || '';
+
+                        // Clean up whitespace
+                        textContent = textContent
+                            .replace(/\n{3,}/g, '\n\n')
+                            .replace(/\s{2,}/g, ' ')
+                            .trim();
+
+                        // Count keyword occurrences in the full content
+                        const keywordVariations = {
+                            'woocommerce': ['woocommerce', 'woo commerce', 'woo-commerce'],
+                            'ecommerce': ['ecommerce', 'e-commerce', 'e commerce'],
+                            'wordpress': ['wordpress', 'word press'],
+                            'web-design': ['web design', 'web-design', 'webdesign'],
+                            'web-development': ['web development', 'web-development', 'webdevelopment'],
+                            'website-development': ['website development', 'website-development'],
+                            'maintenance': ['maintenance', 'maintain'],
+                            'hosting': ['hosting', 'host']
+                        };
+
+                        const variations = keywordVariations[keyword] || [keyword];
+                        let totalCount = 0;
+                        const textLower = textContent.toLowerCase();
+
+                        for (const variation of variations) {
+                            const regex = new RegExp(`\\b${variation.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'gi');
+                            const matches = textLower.match(regex);
+                            if (matches) {
+                                totalCount += matches.length;
+                            }
+                        }
+
+                        // Highlight keywords in preview
+                        let highlightedPreview = textContent.substring(0, 2000);
+                        for (const variation of variations) {
+                            const regex = new RegExp(`(\\b${variation.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b)`, 'gi');
+                            highlightedPreview = highlightedPreview.replace(regex, '<mark style="background-color: #fff3cd; padding: 2px 4px; border-radius: 3px; font-weight: 600;">$1</mark>');
+                        }
+                        const isTruncated = textContent.length > 2000;
+
+                        // Store extracted data with keyword count
+                        state.results.extractedContent[keyword].push({
+                            url: url,
+                            content: textContent,
+                            preview: textContent.substring(0, 2000),
+                            highlightedPreview: highlightedPreview,
+                            size: textContent.length,
+                            keywordCount: totalCount
+                        });
+
+                        totalPagesExtracted++;
+
+                        // Display preview with keyword highlighting
+                        const displayHtml = `
+                            <div class="content-preview">
+                                <div class="preview-header">
+                                    <strong>📄 Page ${i + 1}:</strong> <a href="${url}" target="_blank" style="color: #0066cc; text-decoration: none;">${url}</a>
+                                    <span style="color: #666; font-size: 0.9em; margin-left: 10px;">(${textContent.length.toLocaleString()} chars)</span>
+                                    <span style="color: #856404; background: #fff3cd; padding: 3px 8px; border-radius: 4px; font-size: 0.85em; margin-left: 10px; font-weight: 600;">
+                                        🔍 "${keyword}" found ${totalCount}x
+                                    </span>
+                                </div>
+                                <div class="preview-content">${highlightedPreview}${isTruncated ? '...' : ''}</div>
+                            </div>
+                        `;
+                        addStageLog('stage3', displayHtml, 'info');
+                        addLog(`✅ Extracted ${textContent.length} characters from ${keyword} page (keyword found ${totalCount}x)`, 'success');
+
+                    } catch (error) {
+                        addStageLog('stage3', `❌ Failed to fetch ${url}: ${error.message}`, 'error');
+                        addLog(`❌ Error extracting ${keyword} page: ${error.message}`, 'error');
+                    }
+                }
+            }
+
+            // Now handle Team and Contact pages separately (using old function)
+            const teamUrls = state.results.classifiedUrls.team || [];
+            const contactUrls = state.results.classifiedUrls.contact || [];
+
+            // Team pages
+            if (teamUrls.length > 0) {
+                await sleep(500);
+                const teamUrlsToFetch = await selectBestUrlsWithAI('Team', teamUrls, 2);
+
+                if (teamUrlsToFetch.length > 0) {
+                    state.results.extractedContent['Team'] = [];
+
+                    addStageLog('stage3', `<div class="category-section">
+                        <div class="category-header">
+                            <span class="category-title">📂 Team</span>
+                            <span class="pages-count">${teamUrlsToFetch.length} page(s)</span>
+                        </div>
+                    </div>`, 'info');
+
+                    for (let i = 0; i < teamUrlsToFetch.length; i++) {
+                        const url = teamUrlsToFetch[i];
+                        await sleep(800);
+
+                        addStageLog('stage3', `🔄 Fetching: ${url}`, 'info');
+                        addLog(`📥 Downloading page ${i + 1}/${teamUrlsToFetch.length} from Team: ${url}`, 'info');
+
+                    try {
+                        const response = await fetchWithProxy(url);
+                        let content = await response.text();
+
+                        // Simple HTML to text conversion
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = content;
+
+                        // Remove script and style tags
+                        const scripts = tempDiv.querySelectorAll('script, style, nav, footer, header');
+                        scripts.forEach(script => script.remove());
+
+                        // Get text content
+                        let textContent = tempDiv.textContent || tempDiv.innerText || '';
+
+                        // Clean up whitespace
+                        textContent = textContent
+                            .replace(/\n{3,}/g, '\n\n')
+                            .replace(/\s{2,}/g, ' ')
+                            .trim();
+
+                        // Limit to first 2000 characters for display
+                        const preview = textContent.substring(0, 2000);
+                        const isTruncated = textContent.length > 2000;
+
+                        // Extract team members using AI
+                        addStageLog('stage3', `👥 Extracting team members using AI...`, 'ai');
+                        const teamMembers = await extractTeamMembers(textContent, url);
+                        if (teamMembers.length > 0) {
+                            addLog(`✅ Found ${teamMembers.length} team members`, 'success');
+                        }
+
+                        // Store extracted data
+                        state.results.extractedContent['Team'].push({
+                            url: url,
+                            content: textContent,
+                            preview: preview,
+                            size: textContent.length,
+                            teamMembers: teamMembers
+                        });
+
+                        totalPagesExtracted++;
+
+                        // Build extra info section
+                        let extraInfoHtml = '';
+                        if (teamMembers.length > 0) {
+                            extraInfoHtml = `
+                                <div style="margin: 15px 0; padding: 15px; background: #e7f5ff; border-radius: 6px;">
+                                    <strong>👥 Extracted Team Members (${teamMembers.length}):</strong>
+                                    <div style="margin-top: 10px;">
+                                        ${teamMembers.map(member => `
+                                            <div style="margin: 10px 0; padding: 10px; background: white; border-radius: 4px;">
+                                                <div style="font-weight: 600; color: #495057;">${member.name}</div>
+                                                <div style="color: #667eea; font-size: 0.9em;">${member.title}</div>
+                                                ${member.bio ? `<div style="margin-top: 5px; color: #6c757d; font-size: 0.85em;">${member.bio}</div>` : ''}
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        }
+
+                        // Display content preview
+                        const previewHtml = `
+                            <div class="content-preview">
+                                <div class="preview-header">
+                                    <strong>📄 Page ${i + 1}:</strong> <a href="${url}" target="_blank" style="color: #0066cc; text-decoration: none;">${url}</a>
+                                    <span style="color: #666; font-size: 0.9em; margin-left: 10px;">(${textContent.length.toLocaleString()} chars)</span>
+                                </div>
+                                ${extraInfoHtml}
+                                <div class="preview-content">${preview}${isTruncated ? '...' : ''}</div>
+                            </div>
+                        `;
+                        addStageLog('stage3', previewHtml, 'info');
+                        addLog(`✅ Extracted ${textContent.length} characters from Team page`, 'success');
+
+                    } catch (error) {
+                        addStageLog('stage3', `❌ Failed to fetch ${url}: ${error.message}`, 'error');
+                        addLog(`❌ Error extracting Team page: ${error.message}`, 'error');
+                    }
+                }
+                }
+            }
+
+            // Contact pages
+            if (contactUrls.length > 0) {
+                await sleep(500);
+                const contactUrlsToFetch = await selectBestUrlsWithAI('Contact', contactUrls, 2);
+
+                if (contactUrlsToFetch.length > 0) {
+                    state.results.extractedContent['Contact'] = [];
+
+                    addStageLog('stage3', `<div class="category-section">
+                        <div class="category-header">
+                            <span class="category-title">📂 Contact</span>
+                            <span class="pages-count">${contactUrlsToFetch.length} page(s)</span>
+                        </div>
+                    </div>`, 'info');
+
+                    for (let i = 0; i < contactUrlsToFetch.length; i++) {
+                        const url = contactUrlsToFetch[i];
+                        await sleep(800);
+
+                        addStageLog('stage3', `🔄 Fetching: ${url}`, 'info');
+                        addLog(`📥 Downloading page ${i + 1}/${contactUrlsToFetch.length} from Contact: ${url}`, 'info');
+
+                        try {
+                            const response = await fetchWithProxy(url);
+                            let content = await response.text();
+
+                            // Simple HTML to text conversion
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = content;
+
+                            // Remove script and style tags
+                            const scripts = tempDiv.querySelectorAll('script, style, nav, footer, header');
+                            scripts.forEach(script => script.remove());
+
+                            // Get text content
+                            let textContent = tempDiv.textContent || tempDiv.innerText || '';
+
+                            // Clean up whitespace
+                            textContent = textContent
+                                .replace(/\n{3,}/g, '\n\n')
+                                .replace(/\s{2,}/g, ' ')
+                                .trim();
+
+                            // Limit to first 2000 characters for display
+                            const preview = textContent.substring(0, 2000);
+                            const isTruncated = textContent.length > 2000;
+
+                            // Extract phone numbers
+                            const phoneNumbers = extractPhoneNumbers(textContent);
+                            if (phoneNumbers.length > 0) {
+                                addLog(`📞 Found ${phoneNumbers.length} phone numbers`, 'success');
+                            }
+
+                            // Extract email addresses
+                            const emailAddresses = extractEmailAddresses(textContent);
+                            if (emailAddresses.length > 0) {
+                                addLog(`📧 Found ${emailAddresses.length} email addresses`, 'success');
+                            }
+
+                            // Store extracted data
+                            state.results.extractedContent['Contact'].push({
+                                url: url,
+                                content: textContent,
+                                preview: preview,
+                                size: textContent.length,
+                                phoneNumbers: phoneNumbers,
+                                emailAddresses: emailAddresses
+                            });
+
+                            totalPagesExtracted++;
+
+                            // Build extra info section
+                            let extraInfoHtml = '';
+                            if (phoneNumbers.length > 0) {
+                                extraInfoHtml += `
+                                    <div style="margin: 15px 0; padding: 15px; background: #d4edda; border-radius: 6px;">
+                                        <strong>📞 Extracted Phone Numbers (${phoneNumbers.length}):</strong>
+                                        <div style="margin-top: 10px;">
+                                            ${phoneNumbers.map(phone => `
+                                                <div style="display: inline-block; margin: 5px; padding: 8px 15px; background: white; border-radius: 4px; font-weight: 600;">
+                                                    ${phone}
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                            if (emailAddresses.length > 0) {
+                                extraInfoHtml += `
+                                    <div style="margin: 15px 0; padding: 15px; background: #e7f5ff; border-radius: 6px;">
+                                        <strong>📧 Extracted Email Addresses (${emailAddresses.length}):</strong>
+                                        <div style="margin-top: 10px;">
+                                            ${emailAddresses.map(email => `
+                                                <div style="display: inline-block; margin: 5px; padding: 8px 15px; background: white; border-radius: 4px; font-weight: 600;">
+                                                    ${email}
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                `;
+                            }
+
+                            // Display content preview
+                            const previewHtml = `
+                                <div class="content-preview">
+                                    <div class="preview-header">
+                                        <strong>📄 Page ${i + 1}:</strong> <a href="${url}" target="_blank" style="color: #0066cc; text-decoration: none;">${url}</a>
+                                        <span style="color: #666; font-size: 0.9em; margin-left: 10px;">(${textContent.length.toLocaleString()} chars)</span>
+                                    </div>
+                                    ${extraInfoHtml}
+                                    <div class="preview-content">${preview}${isTruncated ? '...' : ''}</div>
+                                </div>
+                            `;
+                            addStageLog('stage3', previewHtml, 'info');
+                            addLog(`✅ Extracted ${textContent.length} characters from Contact page`, 'success');
+
+                        } catch (error) {
+                            addStageLog('stage3', `❌ Failed to fetch ${url}: ${error.message}`, 'error');
+                            addLog(`❌ Error extracting Contact page: ${error.message}`, 'error');
+                        }
+                    }
+                }
+            }
+
+            addStageLog('stage3', `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">${totalPagesExtracted}</div>
+                        <div class="stat-label">Total Pages Extracted</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${Object.keys(state.results.extractedContent).length}</div>
+                        <div class="stat-label">Categories Processed</div>
+                    </div>
+                </div>
+            `, 'info');
+
+            // Display cost summary for Stage 3
+            await sleep(500);
+            displayCostSummary('stage3');
+
+            updateStageStatus('stage3', 'Completed ✓', false, true);
+            addLog(`✅ Stage 3 complete: Extracted content from ${totalPagesExtracted} pages`, 'success');
+        }
+
+        // Stage 4: Content Summary & Statistics
+        async function runStage4() {
+            updateStageStatus('stage4', 'Running...', true, false);
+            addLog('📊 Stage 4: Generating content summary and statistics...', 'info');
+
+            await sleep(500);
+
+            if (!state.results.extractedContent || Object.keys(state.results.extractedContent).length === 0) {
+                addStageLog('stage4', '⚠️ No content extracted in Stage 3. Skipping analysis.', 'warning');
+                updateStageStatus('stage4', 'Skipped', false, true);
+                return;
+            }
+
+            // Aggregate statistics from all categories
+            let totalPages = 0;
+            let totalCharacters = 0;
+            let totalTeamMembers = 0;
+            let totalPhoneNumbers = 0;
+            let totalEmailAddresses = 0;
+            const categoryStats = {};
+
+            addStageLog('stage4', '🔍 Aggregating data from all extracted content...', 'info');
+            await sleep(500);
+
+            for (const [category, pages] of Object.entries(state.results.extractedContent)) {
+                categoryStats[category] = {
+                    pageCount: pages.length,
+                    totalChars: 0,
+                    teamMembers: 0,
+                    phoneNumbers: 0,
+                    emailAddresses: 0
+                };
+
+                for (const page of pages) {
+                    totalPages++;
+                    totalCharacters += page.size;
+                    categoryStats[category].totalChars += page.size;
+
+                    if (page.teamMembers && page.teamMembers.length > 0) {
+                        totalTeamMembers += page.teamMembers.length;
+                        categoryStats[category].teamMembers += page.teamMembers.length;
+                    }
+
+                    if (page.phoneNumbers && page.phoneNumbers.length > 0) {
+                        totalPhoneNumbers += page.phoneNumbers.length;
+                        categoryStats[category].phoneNumbers += page.phoneNumbers.length;
+                    }
+
+                    if (page.emailAddresses && page.emailAddresses.length > 0) {
+                        totalEmailAddresses += page.emailAddresses.length;
+                        categoryStats[category].emailAddresses += page.emailAddresses.length;
+                    }
+                }
+            }
+
+            await sleep(500);
+
+            // Display overall statistics
+            const overallStatsHtml = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">${totalPages}</div>
+                        <div class="stat-label">Total Pages Analyzed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${Math.round(totalCharacters / 1024)}KB</div>
+                        <div class="stat-label">Total Content Extracted</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${totalTeamMembers}</div>
+                        <div class="stat-label">Team Members Found</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${totalPhoneNumbers}</div>
+                        <div class="stat-label">Phone Numbers Found</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${totalEmailAddresses}</div>
+                        <div class="stat-label">Email Addresses Found</div>
+                    </div>
+                </div>
+            `;
+            addStageLog('stage4', overallStatsHtml, 'info');
+
+            await sleep(500);
+
+            // Display category breakdown
+            addStageLog('stage4', '<h3 style="margin: 20px 0 10px 0;">📂 Content Breakdown by Category</h3>', 'info');
+
+            for (const [category, stats] of Object.entries(categoryStats)) {
+                if (stats.pageCount > 0) {
+                    const categoryHtml = `
+                        <div class="category-section">
+                            <div class="category-header">
+                                <span class="category-title">${category}</span>
+                                <span class="pages-count">${stats.pageCount} page${stats.pageCount > 1 ? 's' : ''}</span>
+                            </div>
+                            <div style="padding: 15px; background: #f8f9fa; border-radius: 6px; margin-top: 10px;">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                                    <div>
+                                        <div style="font-size: 0.9em; color: #6c757d;">Content Size</div>
+                                        <div style="font-weight: 600; color: #495057;">${Math.round(stats.totalChars / 1024)}KB</div>
+                                    </div>
+                                    ${stats.teamMembers > 0 ? `
+                                        <div>
+                                            <div style="font-size: 0.9em; color: #6c757d;">Team Members</div>
+                                            <div style="font-weight: 600; color: #495057;">${stats.teamMembers}</div>
+                                        </div>
+                                    ` : ''}
+                                    ${stats.phoneNumbers > 0 ? `
+                                        <div>
+                                            <div style="font-size: 0.9em; color: #6c757d;">Phone Numbers</div>
+                                            <div style="font-weight: 600; color: #495057;">${stats.phoneNumbers}</div>
+                                        </div>
+                                    ` : ''}
+                                    ${stats.emailAddresses > 0 ? `
+                                        <div>
+                                            <div style="font-size: 0.9em; color: #6c757d;">Email Addresses</div>
+                                            <div style="font-weight: 600; color: #495057;">${stats.emailAddresses}</div>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    addStageLog('stage4', categoryHtml, 'info');
+                }
+            }
+
+            await sleep(500);
+
+            // Key insights
+            const avgCharsPerPage = Math.round(totalCharacters / totalPages);
+            const largestCategory = Object.entries(categoryStats)
+                .sort((a, b) => b[1].totalChars - a[1].totalChars)[0];
+
+            const insightsHtml = `
+                <div style="background: #e7e9fd; padding: 20px; border-radius: 8px; margin-top: 20px;">
+                    <h3 style="color: #667eea; margin-bottom: 15px;">💡 Key Insights</h3>
+                    <ul style="line-height: 2; color: #495057;">
+                        <li><strong>Average content per page:</strong> ${avgCharsPerPage.toLocaleString()} characters</li>
+                        <li><strong>Largest content category:</strong> ${largestCategory ? largestCategory[0] : 'N/A'} (${largestCategory ? Math.round(largestCategory[1].totalChars / 1024) : 0}KB)</li>
+                        ${totalTeamMembers > 0 ? `<li><strong>Team extraction:</strong> Successfully extracted ${totalTeamMembers} team member${totalTeamMembers > 1 ? 's' : ''}</li>` : ''}
+                        ${totalPhoneNumbers > 0 ? `<li><strong>Contact extraction:</strong> Found ${totalPhoneNumbers} phone number${totalPhoneNumbers > 1 ? 's' : ''}${totalEmailAddresses > 0 ? ` and ${totalEmailAddresses} email address${totalEmailAddresses > 1 ? 'es' : ''}` : ''}</li>` : totalEmailAddresses > 0 ? `<li><strong>Contact extraction:</strong> Found ${totalEmailAddresses} email address${totalEmailAddresses > 1 ? 'es' : ''}</li>` : ''}
+                        <li><strong>Content quality:</strong> ${totalPages >= 5 ? '✅ Excellent' : totalPages >= 3 ? '⚠️ Good' : '❌ Limited'} (${totalPages} pages extracted)</li>
+                    </ul>
+                </div>
+            `;
+            addStageLog('stage4', insightsHtml, 'success');
+
+            await sleep(500);
+
+            // Display final cost breakdown
+            addStageLog('stage4', '<h3 style="margin: 20px 0 10px 0;">💰 Final Cost Breakdown</h3>', 'info');
+
+            const costBreakdownHtml = `
+                <div style="margin: 15px 0; padding: 20px; background: #fff9e6; border-radius: 8px; border: 2px solid #ffc107;">
+                    <h4 style="color: #856404; margin-bottom: 15px;">API Usage Summary (${PRICING.model})</h4>
+                    <div style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                            <div>
+                                <div style="font-size: 0.9em; color: #6c757d;">Total Input Tokens</div>
+                                <div style="font-size: 1.3em; font-weight: 600; color: #495057;">${state.costs.totalInputTokens.toLocaleString()}</div>
+                                <div style="font-size: 0.85em; color: #6c757d;">@$${PRICING.inputCostPer1M}/M = $${((state.costs.totalInputTokens / 1000000) * PRICING.inputCostPer1M).toFixed(6)}</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.9em; color: #6c757d;">Total Output Tokens</div>
+                                <div style="font-size: 1.3em; font-weight: 600; color: #495057;">${state.costs.totalOutputTokens.toLocaleString()}</div>
+                                <div style="font-size: 0.85em; color: #6c757d;">@$${PRICING.outputCostPer1M}/M = $${((state.costs.totalOutputTokens / 1000000) * PRICING.outputCostPer1M).toFixed(6)}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="background: #ffc107; color: #000; padding: 15px; border-radius: 6px; text-align: center;">
+                        <div style="font-size: 0.9em; font-weight: 500;">TOTAL COST FOR THIS ANALYSIS</div>
+                        <div style="font-size: 2em; font-weight: 700; margin-top: 5px;">$${state.costs.totalCost.toFixed(6)}</div>
+                    </div>
+                    <div style="margin-top: 15px; padding: 10px; background: #e7f5ff; border-radius: 6px;">
+                        <strong>📊 Cost per Operation:</strong>
+                        <div style="margin-top: 10px; font-family: monospace; font-size: 0.85em;">
+                            ${state.costs.breakdown.map(item => `
+                                <div style="margin: 5px 0; padding: 5px; background: white; border-radius: 3px;">
+                                    <div style="font-weight: 600;">${item.operation}</div>
+                                    <div style="color: #6c757d;">${item.inputTokens.toLocaleString()} in + ${item.outputTokens.toLocaleString()} out = $${item.cost.toFixed(6)}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            addStageLog('stage4', costBreakdownHtml, 'info');
+
+            addLog(`✅ Analyzed ${totalPages} pages with ${Math.round(totalCharacters / 1024)}KB total content`, 'success');
+            addLog(`💰 Total API cost: $${state.costs.totalCost.toFixed(6)} (${state.costs.totalInputTokens.toLocaleString()} input + ${state.costs.totalOutputTokens.toLocaleString()} output tokens)`, 'success');
+
+            updateStageStatus('stage4', 'Completed ✓', false, true);
+            addLog('✅ Stage 4 complete: Content summary finished', 'success');
+        }
+
+        // Auto-expand first stage on load and load saved keys
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('stage1').classList.add('expanded');
+            loadFromLocalStorage();
+
+            // Check for domain query parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const domainParam = urlParams.get('domain');
+
+            if (domainParam) {
+                // Pre-fill the domain input
+                document.getElementById('domain').value = domainParam;
+
+                // Check if we have saved credentials (with correct prefix)
+                const savedWorkerUrl = localStorage.getItem('sitemapDemo_workerUrl');
+                const savedApiKey = localStorage.getItem('sitemapDemo_apiKey');
+
+                if (savedWorkerUrl && savedApiKey) {
+                    // Auto-start analysis if credentials are available
+                    addLog(`🚀 Auto-starting analysis for domain: ${domainParam}`, 'info');
+                    setTimeout(() => {
+                        startAnalysis();
+                    }, 1000); // Small delay to let UI settle
+                } else {
+                    // Show warning if credentials not available
+                    addLog(`⚠️ Domain "${domainParam}" detected in URL, but credentials not found. Please enter Worker URL and API Key, then click Start Analysis.`, 'warning');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
