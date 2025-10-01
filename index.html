@@ -3003,6 +3003,19 @@ If no clear team members are found, return empty array.`;
             if (pendingDomain) {
                 document.getElementById('domain').value = pendingDomain;
                 sessionStorage.removeItem('pendingDomain');
+
+                // Auto-start analysis for the new domain
+                const savedWorkerUrl = localStorage.getItem('sitemapDemo_workerUrl');
+                const savedApiKey = localStorage.getItem('sitemapDemo_apiKey');
+
+                if (savedWorkerUrl && savedApiKey) {
+                    addLog(`🚀 Auto-starting analysis for new domain: ${pendingDomain}`, 'info');
+                    setTimeout(() => {
+                        startAnalysis();
+                    }, 1000); // Small delay to let UI settle
+                } else {
+                    addLog(`⚠️ New domain "${pendingDomain}" ready, but credentials not found. Please enter Worker URL and API Key, then click Start Analysis.`, 'warning');
+                }
             }
 
             // Check for domain query parameter
