@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sitemap Intelligence System - Live Demo</title>
+    <title>Website Analyzer Sidekick</title>
     <style>
         * {
             margin: 0;
@@ -1050,8 +1050,8 @@
 
                     if (serviceFound) {
                         foundInCategory = true;
-                        // Dot only appears in visual display, not in clipboard copy (innerText strips it)
-                        summaryHtml += `<strong>${serviceName}</strong><span style="color: #28a745; font-size: 1.5em; margin-left: 8px; line-height: 0; vertical-align: middle;">●</span><br>`;
+                        // CSS dot - excluded from clipboard copy via aria-hidden
+                        summaryHtml += `<strong>${serviceName}</strong><span aria-hidden="true" style="display: inline-block; width: 10px; height: 10px; background-color: #28a745; border-radius: 50%; margin-left: 8px; vertical-align: middle;"></span><br>`;
                         summaryHtml += `&nbsp;&nbsp;- ${totalKeywordCount}x<br>`;
                         if (analyzedUrls.length > 0) {
                             analyzedUrls.forEach(url => {
@@ -1061,7 +1061,7 @@
                             });
                         }
                     } else {
-                        summaryHtml += `<strong>${serviceName}</strong><span style="color: #6c757d; font-size: 1.5em; margin-left: 8px; line-height: 0; vertical-align: middle;">●</span><br>`;
+                        summaryHtml += `<strong>${serviceName}</strong><span aria-hidden="true" style="display: inline-block; width: 10px; height: 10px; background-color: #d0d0d0; border-radius: 50%; margin-left: 8px; vertical-align: middle;"></span><br>`;
                         summaryHtml += `&nbsp;&nbsp;- Not detected<br>`;
                     }
                 }
@@ -1114,9 +1114,6 @@
         function copySummaryToClipboard() {
             const summaryDiv = document.getElementById('summaryContent');
             let text = summaryDiv.innerText;
-            
-            // Remove the colored dot bullet characters
-            text = text.replace(/●/g, '').replace(/\s+\n/g, '\n').trim();
             
             const copyBtn = document.querySelector('#summarySection button');
 
