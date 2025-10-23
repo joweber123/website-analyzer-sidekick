@@ -64,16 +64,24 @@
             color: #495057;
         }
 
-        .input-group input {
+        .input-group input,
+        .input-group textarea {
             width: 100%;
             padding: 12px 15px;
             border: 2px solid #dee2e6;
             border-radius: 6px;
             font-size: 1em;
             transition: border-color 0.3s;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
         }
 
-        .input-group input:focus {
+        .input-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .input-group input:focus,
+        .input-group textarea:focus {
             outline: none;
             border-color: #667eea;
         }
@@ -575,11 +583,12 @@
 
         <div class="input-section">
             <div class="input-group">
-                <label for="domain">🌐 Target Domain</label>
+                <label for="domain">🌐 Target Domains</label>
                 <div style="display: flex; gap: 10px; align-items: flex-start;">
                     <div style="flex: 1;">
-                        <input type="text" id="domain" placeholder="example.com" oninput="handleDomainChange()">
-                        <small style="display: block; margin-top: 5px;">Enter a domain to analyze (e.g., example.com, agency-website.com)</small>
+                        <textarea id="domain" placeholder="example.com&#10;another-site.com&#10;agency-website.com" oninput="handleDomainChange()"></textarea>
+                        <small style="display: block; margin-top: 5px;">Enter up to 30 domains (one per line). Example: example.com, agency-website.com</small>
+                        <small id="domainCount" style="display: block; margin-top: 3px; color: #3858e9; font-weight: 600;"></small>
                     </div>
                     <div style="display: flex; gap: 10px; padding-top: 0;">
                         <button class="btn btn-primary" id="startBtn" onclick="startAnalysis()">
@@ -768,7 +777,8 @@
             isPaused: false,
             currentStage: 0,
             domain: '',
-            analyzedDomain: '', // Track which domain was analyzed
+            domains: [], // Array of domains to analyze
+            analyzedDomains: [], // Track which domains were analyzed
             workerUrl: '',
             apiKey: '',
             results: {
@@ -778,6 +788,8 @@
                 aiSelection: null,
                 extractedContent: {}
             },
+            // Multi-domain results storage
+            multiDomainResults: {}, // { domain: { results, costs } }
             costs: {
                 totalInputTokens: 0,
                 totalOutputTokens: 0,
@@ -1114,6 +1126,144 @@
             document.getElementById('summarySection').style.display = 'block';
         }
 
+        // Generate multi-domain summary
+        function generateMultiDomainSummary() {
+            const domains = Object.keys(state.multiDomainResults);
+
+            if (domains.length === 0) {
+                return;
+            }
+
+            let summaryHtml = `<strong>Multi-Domain Website Analysis</strong><br>`;
+            summaryHtml += `<strong>Analyzed ${domains.length} domain(s)</strong><br><br>`;
+
+            // Define service categories
+            const serviceCategories = {
+                'Services (Scraped)': {
+                    'Website Design & Development': ['web-design', 'web-development', 'website-development'],
+                    'E-Commerce': ['ecommerce'],
+                    'Maintenance': ['maintenance'],
+                    'Hosting': ['hosting']
+                },
+                'A8c Products (Scraped)': {
+                    'WooCommerce': ['woocommerce'],
+                    'WordPress': ['wordpress']
+                }
+            };
+
+            // Process each domain
+            domains.forEach((domain, index) => {
+                const domainData = state.multiDomainResults[domain];
+
+                if (domainData.error) {
+                    summaryHtml += `<div style="border: 2px solid #dc3545; border-radius: 6px; padding: 15px; margin-bottom: 20px; background: #f8d7da;">`;
+                    summaryHtml += `<strong style="color: #721c24;">❌ ${domain}</strong><br>`;
+                    summaryHtml += `<em style="color: #721c24;">Error: ${domainData.error}</em><br>`;
+                    summaryHtml += `</div>`;
+                    return;
+                }
+
+                const results = domainData.results.extractedContent;
+
+                summaryHtml += `<div style="border: 2px solid #3858e9; border-radius: 6px; padding: 15px; margin-bottom: 20px;">`;
+                summaryHtml += `<strong style="font-size: 1.2em; color: #3858e9;">🌐 ${domain}</strong><br><br>`;
+
+                // Generate summary for each category
+                for (const [categoryName, services] of Object.entries(serviceCategories)) {
+                    summaryHtml += `<strong>${categoryName}:</strong><br>`;
+                    let foundInCategory = false;
+
+                    for (const [serviceName, keywords] of Object.entries(services)) {
+                        let serviceFound = false;
+                        let totalKeywordCount = 0;
+                        let totalPages = 0;
+                        let analyzedUrls = [];
+
+                        // Check all keywords for this service
+                        for (const keyword of keywords) {
+                            if (results[keyword] && results[keyword].length > 0) {
+                                serviceFound = true;
+                                totalPages += results[keyword].length;
+
+                                // Calculate keyword count across all pages
+                                for (const page of results[keyword]) {
+                                    totalKeywordCount += (page.keywordCount || 0);
+                                    analyzedUrls.push(page.url);
+                                }
+                            }
+                        }
+
+                        if (serviceFound) {
+                            foundInCategory = true;
+                            summaryHtml += `<strong>${serviceName}</strong><span aria-hidden="true" style="display: inline-block; width: 10px; height: 10px; background-color: #28a745; border-radius: 50%; margin-left: 8px; vertical-align: middle;"></span><br>`;
+                            summaryHtml += `&nbsp;&nbsp;- ${totalKeywordCount}x<br>`;
+                            if (analyzedUrls.length > 0) {
+                                analyzedUrls.forEach(url => {
+                                    const cleanUrl = url.endsWith('/') ? url.slice(0, -1) : url;
+                                    summaryHtml += `&nbsp;&nbsp;- <a href="${url}" target="_blank" style="color: #0066cc; text-decoration: underline;">${cleanUrl}</a><br>`;
+                                });
+                            }
+                        } else {
+                            summaryHtml += `<strong>${serviceName}</strong><span aria-hidden="true" style="display: inline-block; width: 10px; height: 10px; background-color: #d0d0d0; border-radius: 50%; margin-left: 8px; vertical-align: middle;"></span><br>`;
+                            summaryHtml += `&nbsp;&nbsp;- Not detected<br>`;
+                        }
+                    }
+
+                    if (!foundInCategory) {
+                        summaryHtml += `• No services detected in this category<br>`;
+                    }
+
+                    summaryHtml += `<br>`;
+                }
+
+                // Team Information
+                if (results['Team'] && results['Team'].length > 0) {
+                    const teamData = results['Team'][0];
+                    if (teamData.teamMembers && teamData.teamMembers.length > 0) {
+                        summaryHtml += `<strong>Team Members Found:</strong> ${teamData.teamMembers.length}<br>`;
+                        teamData.teamMembers.forEach(member => {
+                            summaryHtml += `• ${member.name}`;
+                            if (member.title) summaryHtml += ` - ${member.title}`;
+                            summaryHtml += `<br>`;
+                        });
+                        summaryHtml += `<br>`;
+                    }
+                }
+
+                // Contact Information
+                if (results['Contact'] && results['Contact'].length > 0) {
+                    const contactData = results['Contact'][0];
+                    if (contactData.phoneNumbers && contactData.phoneNumbers.length > 0) {
+                        summaryHtml += `<strong>Phone Numbers:</strong><br>`;
+                        contactData.phoneNumbers.forEach(phone => {
+                            summaryHtml += `• ${phone}<br>`;
+                        });
+                        summaryHtml += `<br>`;
+                    }
+                    if (contactData.emailAddresses && contactData.emailAddresses.length > 0) {
+                        summaryHtml += `<strong>Email Addresses:</strong><br>`;
+                        contactData.emailAddresses.forEach(email => {
+                            summaryHtml += `• ${email}<br>`;
+                        });
+                        summaryHtml += `<br>`;
+                    }
+                }
+
+                summaryHtml += `</div>`;
+            });
+
+            // Add aggregate cost information
+            summaryHtml += `<div style="border: 2px solid #6c757d; border-radius: 6px; padding: 15px; margin-top: 20px; background: #f8f9fa;">`;
+            summaryHtml += `<strong>📊 Total Analysis Cost</strong><br>`;
+            summaryHtml += `Total Input Tokens: ${state.costs.totalInputTokens.toLocaleString()}<br>`;
+            summaryHtml += `Total Output Tokens: ${state.costs.totalOutputTokens.toLocaleString()}<br>`;
+            summaryHtml += `<strong>Total Cost: $${state.costs.totalCost.toFixed(4)}</strong><br>`;
+            summaryHtml += `</div>`;
+
+            document.getElementById('summaryContent').innerHTML = summaryHtml;
+            document.getElementById('summarySection').style.display = 'block';
+        }
+
         // Copy summary to clipboard
         function copySummaryToClipboard() {
             const summaryDiv = document.getElementById('summaryContent');
@@ -1228,12 +1378,34 @@
 
         // Export results
         function exportResults() {
-            const dataStr = JSON.stringify(state.results, null, 2);
+            // Export multi-domain results if available, otherwise single domain
+            const exportData = state.multiDomainResults && Object.keys(state.multiDomainResults).length > 0
+                ? {
+                    type: 'multi-domain',
+                    domains: state.analyzedDomains,
+                    results: state.multiDomainResults,
+                    aggregateCosts: state.costs,
+                    timestamp: new Date().toISOString()
+                }
+                : {
+                    type: 'single-domain',
+                    domain: state.domain,
+                    results: state.results,
+                    costs: state.costs,
+                    timestamp: new Date().toISOString()
+                };
+
+            const dataStr = JSON.stringify(exportData, null, 2);
             const dataBlob = new Blob([dataStr], {type: 'application/json'});
             const url = URL.createObjectURL(dataBlob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `sitemap-analysis-${state.domain}-${Date.now()}.json`;
+
+            const filename = exportData.type === 'multi-domain'
+                ? `multi-domain-analysis-${exportData.domains.length}-domains-${Date.now()}.json`
+                : `sitemap-analysis-${state.domain}-${Date.now()}.json`;
+
+            link.download = filename;
             link.click();
             addLog('💾 Results exported to JSON file', 'success');
         }
@@ -1247,52 +1419,172 @@
 
         // Handle domain input changes
         function handleDomainChange() {
-            const currentInput = document.getElementById('domain').value.trim()
-                .replace(/^https?:\/\//, '')
-                .replace(/^www\./, '')
-                .replace(/\/$/, '');
+            const domainsInput = document.getElementById('domain').value.trim();
+            const domains = domainsInput
+                .split('\n')
+                .map(d => d.trim())
+                .filter(d => d.length > 0)
+                .map(d => d
+                    .replace(/^https?:\/\//, '')
+                    .replace(/^www\./, '')
+                    .replace(/\/$/, '')
+                );
 
-            // If an analysis has been run and domain changed, show Start button
-            if (state.analyzedDomain && currentInput !== state.analyzedDomain) {
-                // Domain has changed - show Start button and hide others
-                document.getElementById('startBtn').style.display = 'inline-flex';
-                document.getElementById('pauseBtn').style.display = 'none';
-                document.getElementById('newAnalysisBtn').style.display = 'none';
+            const domainCount = domains.length;
+            const countDisplay = document.getElementById('domainCount');
 
-                // Update button text
-                document.getElementById('startBtn').innerHTML = '▶️ Start Analysis';
+            if (domainCount > 0) {
+                countDisplay.textContent = `${domainCount} domain${domainCount !== 1 ? 's' : ''} entered${domainCount > 30 ? ' (maximum 30 will be processed)' : ''}`;
+                countDisplay.style.color = domainCount > 30 ? '#dc3545' : '#3858e9';
+            } else {
+                countDisplay.textContent = '';
             }
+
+            // If an analysis has been run and domains changed, show Start button
+            if (state.analyzedDomains && state.analyzedDomains.length > 0) {
+                const currentDomainStr = domains.sort().join(',');
+                const analyzedDomainStr = state.analyzedDomains.sort().join(',');
+
+                if (currentDomainStr !== analyzedDomainStr) {
+                    // Domains have changed - show Start button and hide others
+                    document.getElementById('startBtn').style.display = 'inline-flex';
+                    document.getElementById('pauseBtn').style.display = 'none';
+                    document.getElementById('newAnalysisBtn').style.display = 'none';
+
+                    // Update button text
+                    document.getElementById('startBtn').innerHTML = '▶️ Start Analysis';
+                }
+            }
+        }
+
+        // Analyze a single domain through all stages
+        async function analyzeSingleDomain(domain, domainIndex, totalDomains) {
+            const domainState = {
+                domain: domain,
+                results: {
+                    sitemaps: [],
+                    allUrls: [],
+                    classifiedUrls: {},
+                    aiSelection: null,
+                    extractedContent: {}
+                },
+                costs: {
+                    totalInputTokens: 0,
+                    totalOutputTokens: 0,
+                    totalCost: 0,
+                    breakdown: []
+                }
+            };
+
+            const prefix = totalDomains > 1 ? `[${domainIndex + 1}/${totalDomains}] ${domain}` : domain;
+
+            try {
+                addLog(`🚀 Starting analysis for: ${prefix}`, 'success');
+
+                // Temporarily set state.domain for the stage functions
+                const originalDomain = state.domain;
+                const originalResults = state.results;
+                const originalCosts = state.costs;
+
+                state.domain = domain;
+                state.results = domainState.results;
+                state.costs = domainState.costs;
+
+                // Stage 1: Sitemap Discovery
+                addLog(`📡 [${prefix}] Stage 1: Discovering sitemaps...`, 'info');
+                await runStage1();
+
+                // Stage 2: URL Classification
+                addLog(`🏷️ [${prefix}] Stage 2: Classifying URLs...`, 'info');
+                await runStage2();
+
+                // Stage 3: AI Page Selection & Content Extraction
+                addLog(`🤖 [${prefix}] Stage 3: AI page selection & content extraction...`, 'info');
+                await runStage3();
+
+                // Stage 4: Generate Summary
+                addLog(`📊 [${prefix}] Stage 4: Generating summary...`, 'info');
+                await runStage4();
+
+                addLog(`✅ [${prefix}] Analysis complete!`, 'success');
+
+                // Restore original state
+                state.domain = originalDomain;
+                state.results = originalResults;
+                state.costs = originalCosts;
+
+                return domainState;
+            } catch (error) {
+                addLog(`❌ [${prefix}] Error: ${error.message}`, 'error');
+                return { domain, error: error.message, results: domainState.results, costs: domainState.costs };
+            }
+        }
+
+        // Concurrent processing with limit
+        async function processConcurrently(domains, concurrencyLimit = 3) {
+            const results = [];
+            const executing = [];
+
+            for (let i = 0; i < domains.length; i++) {
+                const domain = domains[i];
+                const promise = analyzeSingleDomain(domain, i, domains.length).then(result => {
+                    results[i] = result;
+                    return result;
+                });
+
+                const wrappedPromise = promise.then(() => {
+                    executing.splice(executing.indexOf(wrappedPromise), 1);
+                });
+
+                executing.push(wrappedPromise);
+
+                if (executing.length >= concurrencyLimit) {
+                    await Promise.race(executing);
+                }
+            }
+
+            await Promise.all(executing);
+            return results;
         }
 
         // Main analysis function
         async function startAnalysis() {
             // Get inputs
-            let domainInput = document.getElementById('domain').value.trim();
+            const domainsInput = document.getElementById('domain').value.trim();
             state.workerUrl = document.getElementById('workerUrl').value.trim();
             state.apiKey = document.getElementById('apiKey').value.trim();
 
-            // Normalize domain - strip protocol and www
-            domainInput = domainInput
-                .replace(/^https?:\/\//, '')  // Remove http:// or https://
-                .replace(/^www\./, '')         // Remove www.
-                .replace(/\/$/, '');           // Remove trailing slash
+            // Parse and normalize domains
+            state.domains = domainsInput
+                .split('\n')
+                .map(d => d.trim())
+                .filter(d => d.length > 0)
+                .map(d => d
+                    .replace(/^https?:\/\//, '')  // Remove http:// or https://
+                    .replace(/^www\./, '')         // Remove www.
+                    .replace(/\/$/, '')            // Remove trailing slash
+                )
+                .slice(0, 30); // Limit to 30 domains
 
-            // Check if domain has changed from previous analysis
-            if (state.analyzedDomain && domainInput !== state.analyzedDomain) {
-                // Domain changed - reload page to reset everything
-                if (confirm(`Starting analysis for new domain: ${domainInput}\n\nThis will clear all current results. Continue?`)) {
-                    location.reload();
-                    // Set the new domain after reload via sessionStorage
-                    sessionStorage.setItem('pendingDomain', domainInput);
+            // Check if domains have changed from previous analysis
+            if (state.analyzedDomains && state.analyzedDomains.length > 0) {
+                const currentStr = state.domains.sort().join(',');
+                const analyzedStr = state.analyzedDomains.sort().join(',');
+
+                if (currentStr !== analyzedStr) {
+                    // Domains changed - reload page to reset everything
+                    if (confirm(`Starting analysis for ${state.domains.length} domain(s).\n\nThis will clear all current results. Continue?`)) {
+                        location.reload();
+                        // Set the new domains after reload via sessionStorage
+                        sessionStorage.setItem('pendingDomains', state.domains.join('\n'));
+                    }
+                    return;
                 }
-                return;
             }
 
-            state.domain = domainInput;
-
             // Validate inputs
-            if (!state.domain) {
-                alert('Please enter a domain');
+            if (state.domains.length === 0) {
+                alert('Please enter at least one domain');
                 return;
             }
 
@@ -1306,11 +1598,11 @@
                 return;
             }
 
-            // Store this as the analyzed domain
-            state.analyzedDomain = domainInput;
+            // Store these as the analyzed domains
+            state.analyzedDomains = [...state.domains];
 
-            // Log the normalized domain
-            addLog(`🔧 Normalized domain to: ${state.domain}`, 'info');
+            // Log the domains
+            addLog(`🔧 Processing ${state.domains.length} domain(s): ${state.domains.join(', ')}`, 'info');
             addLog(`🔌 Using Cloudflare Worker: ${state.workerUrl}`, 'info');
 
             // Update UI
@@ -1318,44 +1610,48 @@
             document.getElementById('pauseBtn').style.display = 'inline-flex';
             document.getElementById('progressTracker').style.display = 'block';
 
-            addLog(`🚀 Starting analysis for domain: ${state.domain}`, 'success');
+            addLog(`🚀 Starting concurrent analysis for ${state.domains.length} domain(s)...`, 'success');
 
             try {
-                // Stage 1: Sitemap Discovery
+                // Reset progress
+                updateProgress(0);
                 updateStepStatus(1, 'running');
-                await runStage1();
+
+                // Process domains concurrently (3 at a time to avoid overwhelming the API)
+                const domainResults = await processConcurrently(state.domains, 3);
+
+                // Store results for each domain
+                state.multiDomainResults = {};
+                domainResults.forEach(result => {
+                    state.multiDomainResults[result.domain] = result;
+
+                    // Aggregate costs
+                    state.costs.totalInputTokens += result.costs.totalInputTokens || 0;
+                    state.costs.totalOutputTokens += result.costs.totalOutputTokens || 0;
+                    state.costs.totalCost += result.costs.totalCost || 0;
+                });
+
+                // Update UI
                 updateStepStatus(1, 'completed');
-                updateProgress(25);
-
-                // Stage 2: URL Classification
-                updateStepStatus(2, 'running');
-                await runStage2();
                 updateStepStatus(2, 'completed');
-                updateProgress(50);
-
-                // Stage 3: AI Page Selection & Content Extraction
-                updateStepStatus(3, 'running');
-                await runStage3();
                 updateStepStatus(3, 'completed');
+                updateStepStatus(4, 'running');
                 updateProgress(75);
-                
-                // Show export button after Stage 3 completes (we have content to export)
+
+                // Show export button
                 document.getElementById('exportBtn').style.display = 'inline-flex';
 
-                // Stage 4: Generate Summary
-                updateStepStatus(4, 'running');
-                await runStage4();
+                // Generate multi-domain summary
+                generateMultiDomainSummary();
+
                 updateStepStatus(4, 'completed');
                 updateProgress(100);
-
-                // Generate HubSpot summary
-                generateSummary();
 
                 // Hide pause button and show New Analysis button
                 document.getElementById('pauseBtn').style.display = 'none';
                 document.getElementById('newAnalysisBtn').style.display = 'inline-flex';
 
-                addLog('✅ Analysis complete! All stages finished successfully.', 'success');
+                addLog('✅ All analyses complete!', 'success');
             } catch (error) {
                 addLog(`❌ Error: ${error.message}`, 'error');
                 alert(`Analysis failed: ${error.message}`);
@@ -2998,9 +3294,30 @@ If no clear team members are found, return empty array.`;
             document.getElementById('stage1').classList.add('expanded');
             loadFromLocalStorage();
 
-            // Check for pending domain from sessionStorage (after reload)
-            const pendingDomain = sessionStorage.getItem('pendingDomain');
-            if (pendingDomain) {
+            // Check for pending domains from sessionStorage (after reload)
+            const pendingDomains = sessionStorage.getItem('pendingDomains');
+            const pendingDomain = sessionStorage.getItem('pendingDomain'); // Legacy support
+
+            if (pendingDomains) {
+                document.getElementById('domain').value = pendingDomains;
+                sessionStorage.removeItem('pendingDomains');
+
+                // Auto-start analysis for the new domains
+                const savedWorkerUrl = localStorage.getItem('sitemapDemo_workerUrl');
+                const savedApiKey = localStorage.getItem('sitemapDemo_apiKey');
+
+                const domainCount = pendingDomains.split('\n').filter(d => d.trim()).length;
+
+                if (savedWorkerUrl && savedApiKey) {
+                    addLog(`🚀 Auto-starting analysis for ${domainCount} domain(s)`, 'info');
+                    setTimeout(() => {
+                        startAnalysis();
+                    }, 1000); // Small delay to let UI settle
+                } else {
+                    addLog(`⚠️ ${domainCount} domain(s) ready, but credentials not found. Please enter Worker URL and API Key, then click Start Analysis.`, 'warning');
+                }
+            } else if (pendingDomain) {
+                // Legacy single domain support
                 document.getElementById('domain').value = pendingDomain;
                 sessionStorage.removeItem('pendingDomain');
 
@@ -3018,27 +3335,35 @@ If no clear team members are found, return empty array.`;
                 }
             }
 
-            // Check for domain query parameter
+            // Check for domain query parameter (supports comma-separated domains)
             const urlParams = new URLSearchParams(window.location.search);
             const domainParam = urlParams.get('domain');
+            const domainsParam = urlParams.get('domains');
 
-            if (domainParam && !pendingDomain) {
-                // Pre-fill the domain input
-                document.getElementById('domain').value = domainParam;
+            if ((domainsParam || domainParam) && !pendingDomains && !pendingDomain) {
+                // Pre-fill the domain input - support both single domain and multiple domains
+                const domainsToLoad = domainsParam
+                    ? domainsParam.split(',').join('\n')
+                    : domainParam;
+
+                document.getElementById('domain').value = domainsToLoad;
+                handleDomainChange(); // Update the domain count display
 
                 // Check if we have saved credentials (with correct prefix)
                 const savedWorkerUrl = localStorage.getItem('sitemapDemo_workerUrl');
                 const savedApiKey = localStorage.getItem('sitemapDemo_apiKey');
 
+                const domainCount = domainsToLoad.split('\n').filter(d => d.trim()).length;
+
                 if (savedWorkerUrl && savedApiKey) {
                     // Auto-start analysis if credentials are available
-                    addLog(`🚀 Auto-starting analysis for domain: ${domainParam}`, 'info');
+                    addLog(`🚀 Auto-starting analysis for ${domainCount} domain(s)`, 'info');
                     setTimeout(() => {
                         startAnalysis();
                     }, 1000); // Small delay to let UI settle
                 } else {
                     // Show warning if credentials not available
-                    addLog(`⚠️ Domain "${domainParam}" detected in URL, but credentials not found. Please enter Worker URL and API Key, then click Start Analysis.`, 'warning');
+                    addLog(`⚠️ ${domainCount} domain(s) detected in URL, but credentials not found. Please enter Worker URL and API Key, then click Start Analysis.`, 'warning');
                 }
             }
         });
