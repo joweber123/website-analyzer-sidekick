@@ -1016,13 +1016,13 @@
 
             // Define service categories
             const serviceCategories = {
-                'Services (Scraped)': {
+                'Services Offered': {
                     'Website Design & Development': ['web-design', 'web-development', 'website-development'],
-                    'E-Commerce': ['ecommerce'],
-                    'Maintenance': ['maintenance'],
+                    'eCommerce Development': ['ecommerce'],
+                    'Maintenance & Support Plans': ['maintenance'],
                     'Hosting': ['hosting']
                 },
-                'A8c Products (Scraped)': {
+                'A8c Products Advertised': {
                     'WooCommerce': ['woocommerce'],
                     'WordPress': ['wordpress']
                 }
@@ -1068,7 +1068,6 @@
                         foundInCategory = true;
                         // CSS dot - excluded from clipboard copy via aria-hidden
                         summaryHtml += `<strong>${serviceName}</strong><span aria-hidden="true" style="display: inline-block; width: 10px; height: 10px; background-color: #28a745; border-radius: 50%; margin-left: 8px; vertical-align: middle;"></span><br>`;
-                        summaryHtml += `&nbsp;&nbsp;- ${totalKeywordCount}x<br>`;
                         if (analyzedUrls.length > 0) {
                             analyzedUrls.forEach(url => {
                                 // Remove trailing slash
@@ -1139,13 +1138,13 @@
 
             // Define service categories
             const serviceCategories = {
-                'Services (Scraped)': {
+                'Services Offered': {
                     'Website Design & Development': ['web-design', 'web-development', 'website-development'],
-                    'E-Commerce': ['ecommerce'],
-                    'Maintenance': ['maintenance'],
+                    'eCommerce Development': ['ecommerce'],
+                    'Maintenance & Support Plans': ['maintenance'],
                     'Hosting': ['hosting']
                 },
-                'A8c Products (Scraped)': {
+                'A8c Products Advertised': {
                     'WooCommerce': ['woocommerce'],
                     'WordPress': ['wordpress']
                 }
