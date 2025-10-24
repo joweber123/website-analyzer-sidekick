@@ -1268,17 +1268,45 @@
             const summaryDiv = document.getElementById('summaryContent');
             let text = summaryDiv.innerText;
 
-            // Remove domain lines from the copied text
+            // Remove domain lines and cost section from the copied text
             const lines = text.split('\n');
+            let inCostSection = false;
             const filteredLines = lines.filter(line => {
                 const trimmedLine = line.trim();
+
+                // Detect start of cost section
+                if (trimmedLine.includes('📊 Total Analysis Cost') || trimmedLine.includes('Total Analysis Cost')) {
+                    inCostSection = true;
+                    return false;
+                }
+
+                // Skip all lines in cost section
+                if (inCostSection) {
+                    // Cost section ends when we hit an empty line or new section
+                    if (trimmedLine === '') {
+                        inCostSection = false;
+                    }
+                    return false;
+                }
+
                 // Remove "Website Analysis: {domain}" line
                 if (trimmedLine.startsWith('Website Analysis:')) return false;
                 // Remove "🌐 {domain}" lines for multi-domain
                 if (trimmedLine.startsWith('🌐')) return false;
+                // Remove "Multi-Domain Website Analysis" header
+                if (trimmedLine.includes('Multi-Domain Website Analysis')) return false;
+                // Remove "Analyzed X domain(s)" line
+                if (trimmedLine.startsWith('Analyzed') && trimmedLine.includes('domain')) return false;
+                // Remove lines about tokens and cost
+                if (trimmedLine.startsWith('Total Input Tokens:')) return false;
+                if (trimmedLine.startsWith('Total Output Tokens:')) return false;
+                if (trimmedLine.startsWith('Total Cost:')) return false;
+
                 return true;
             });
-            text = filteredLines.join('\n');
+
+            // Join lines and trim leading/trailing whitespace
+            text = filteredLines.join('\n').trim();
 
             const copyBtn = document.querySelector('#summarySection button');
 
