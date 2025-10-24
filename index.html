@@ -2718,6 +2718,115 @@ If no clear team members are found, return empty array.`;
             await sleep(500);
             const selectedUrlsByKeyword = await selectBestUrlsForAllKeywords(serviceCategories);
 
+            // Deduplicate and limit URLs per category (not per keyword)
+            // This prevents scraping the same URL multiple times for different keywords
+            const keywordToCategory = {};
+            for (const [category, data] of Object.entries(serviceCategories)) {
+                for (const keyword of data.keywords) {
+                    keywordToCategory[keyword] = category;
+                }
+            }
+
+            // Define keyword priorities (lower number = higher priority)
+            // Preference: web-development, website-development > web-design > wordpress
+            const keywordPriority = {
+                'web-development': 1,
+                'website-development': 1,
+                'web-design': 2,
+                'wordpress': 3,
+                'ecommerce': 1,
+                'woocommerce': 1,
+                'maintenance': 1,
+                'hosting': 2
+            };
+
+            // Calculate URL depth (number of path segments after domain)
+            // Prefer shallower URLs (e.g., /web-development over /services/web-development)
+            function getUrlDepth(url) {
+                try {
+                    const urlObj = new URL(url);
+                    const pathParts = urlObj.pathname.split('/').filter(p => p.length > 0);
+                    return pathParts.length;
+                } catch {
+                    return 999; // Invalid URL gets lowest priority
+                }
+            }
+
+            // Group URLs by category with metadata
+            const categoryUrls = {};
+            for (const [keyword, urls] of Object.entries(selectedUrlsByKeyword)) {
+                const category = keywordToCategory[keyword];
+                if (!category) continue;
+
+                if (!categoryUrls[category]) {
+                    categoryUrls[category] = [];
+                }
+
+                for (const url of urls) {
+                    categoryUrls[category].push({
+                        url,
+                        keyword,
+                        priority: keywordPriority[keyword] || 999,
+                        depth: getUrlDepth(url)
+                    });
+                }
+            }
+
+            // Deduplicate and select top 2 per category
+            const deduplicatedUrls = {};
+            for (const [category, urlData] of Object.entries(categoryUrls)) {
+                // Remove duplicates (same URL from different keywords)
+                const uniqueUrls = new Map();
+                for (const data of urlData) {
+                    if (!uniqueUrls.has(data.url)) {
+                        uniqueUrls.set(data.url, data);
+                    } else {
+                        // Keep the one with better (lower) keyword priority
+                        const existing = uniqueUrls.get(data.url);
+                        if (data.priority < existing.priority) {
+                            uniqueUrls.set(data.url, data);
+                        }
+                    }
+                }
+
+                // Sort by priority then depth
+                const sorted = Array.from(uniqueUrls.values()).sort((a, b) => {
+                    if (a.priority !== b.priority) {
+                        return a.priority - b.priority; // Lower priority number = better
+                    }
+                    return a.depth - b.depth; // Lower depth = better (less nested)
+                });
+
+                // Take top 2
+                deduplicatedUrls[category] = sorted.slice(0, 2);
+            }
+
+            // Rebuild selectedUrlsByKeyword with only the selected URLs
+            const newSelectedUrlsByKeyword = {};
+            for (const [category, urlDataArray] of Object.entries(deduplicatedUrls)) {
+                for (const data of urlDataArray) {
+                    if (!newSelectedUrlsByKeyword[data.keyword]) {
+                        newSelectedUrlsByKeyword[data.keyword] = [];
+                    }
+                    newSelectedUrlsByKeyword[data.keyword].push(data.url);
+                }
+            }
+
+            // Log deduplication results
+            addStageLog('stage3', `<br>✨ <strong>Deduplication Results:</strong>`, 'info');
+            for (const [category, urlDataArray] of Object.entries(deduplicatedUrls)) {
+                if (urlDataArray.length > 0) {
+                    addStageLog('stage3', `&nbsp;&nbsp;<strong>${category}:</strong> ${urlDataArray.length} URL(s) selected`, 'info');
+                    for (const data of urlDataArray) {
+                        addStageLog('stage3', `&nbsp;&nbsp;&nbsp;&nbsp;• ${data.url}<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[keyword: ${data.keyword}, depth: ${data.depth}]`, 'info');
+                    }
+                }
+            }
+
+            // Replace with deduplicated results
+            Object.keys(selectedUrlsByKeyword).forEach(key => delete selectedUrlsByKeyword[key]);
+            Object.assign(selectedUrlsByKeyword, newSelectedUrlsByKeyword);
+
             // Process service keywords - fetch and extract content
             for (const keyword in selectedUrlsByKeyword) {
                 const urlsToFetch = selectedUrlsByKeyword[keyword] || [];
