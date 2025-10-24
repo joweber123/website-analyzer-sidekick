@@ -1267,7 +1267,19 @@
         function copySummaryToClipboard() {
             const summaryDiv = document.getElementById('summaryContent');
             let text = summaryDiv.innerText;
-            
+
+            // Remove domain lines from the copied text
+            const lines = text.split('\n');
+            const filteredLines = lines.filter(line => {
+                const trimmedLine = line.trim();
+                // Remove "Website Analysis: {domain}" line
+                if (trimmedLine.startsWith('Website Analysis:')) return false;
+                // Remove "🌐 {domain}" lines for multi-domain
+                if (trimmedLine.startsWith('🌐')) return false;
+                return true;
+            });
+            text = filteredLines.join('\n');
+
             const copyBtn = document.querySelector('#summarySection button');
 
             navigator.clipboard.writeText(text).then(() => {
